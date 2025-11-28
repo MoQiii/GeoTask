@@ -16,9 +16,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        // 高德地图Maven仓库
+        maven { url = uri("https://repo1.maven.org/maven2/") }
+        maven { url = uri("https://developer.huawei.com/repo/") }
     }
 }
 
 rootProject.name = "GeoTask"
 include(":app")
- 

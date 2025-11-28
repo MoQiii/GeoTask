@@ -1,4 +1,4 @@
-package com.syj.geotask.ui.theme
+package com.syj.geotask.presentation.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
