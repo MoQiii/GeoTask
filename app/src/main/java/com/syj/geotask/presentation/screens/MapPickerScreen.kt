@@ -38,17 +38,8 @@ fun MapPickerScreen(
     var selectedLng by remember { mutableStateOf(initialLng) }
     var isLocationConfirmed by remember { mutableStateOf(false) }
     
-    // 处理地图生命周期
-    DisposableEffect(lifecycleOwner) {
-        onDispose {
-            // 当组件销毁时清理地图资源
-            MapManager.onDestroy()
-        }
-    }
-    
     // 监听返回键
     BackHandler {
-        MapManager.onDestroy()
         onBackClick()
     }
     
@@ -59,7 +50,6 @@ fun MapPickerScreen(
                     title = { Text("选择位置") },
                     navigationIcon = {
                         IconButton(onClick = {
-                            MapManager.onDestroy()
                             onBackClick()
                         }) {
                             Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -124,7 +114,6 @@ fun MapPickerScreen(
                                 }
                                 Button(
                                     onClick = {
-                                        MapManager.onDestroy()
                                         onLocationSelected(selectedLocation, selectedLat, selectedLng)
                                     },
                                     modifier = Modifier.weight(1f)
@@ -174,28 +163,6 @@ class MapPickerActivity : ComponentActivity() {
         }
     }
     
-    override fun onResume() {
-        super.onResume()
-        MapManager.onResume()
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        MapManager.onPause()
-    }
-    
-    override fun onDestroy() {
-        super.onDestroy()
-        MapManager.onDestroy()
-    }
-    
-    override fun onLowMemory() {
-        super.onLowMemory()
-        MapManager.onLowMemory()
-    }
-    
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        MapManager.onSaveInstanceState(outState)
-    }
+    // 注意：地图生命周期现在由AMapProvider内部通过DisposableEffect自动管理
+    // 不需要手动调用MapManager的生命周期方法
 }

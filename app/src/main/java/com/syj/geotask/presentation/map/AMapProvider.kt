@@ -10,8 +10,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.amap.api.maps.AMap
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.MapView
@@ -82,6 +85,7 @@ class AMapProvider : MapProvider {
         apiKey: String
     ) {
         val context = LocalContext.current
+        val lifecycleOwner = LocalLifecycleOwner.current
         
         // 状态管理
         var selectedAddress by remember { mutableStateOf("正在获取地址...") }
@@ -163,6 +167,45 @@ class AMapProvider : MapProvider {
                     },
                     modifier = Modifier.fillMaxSize()
                 )
+                
+                // 生命周期管理
+                DisposableEffect(lifecycleOwner) {
+                    val lifecycleObserver = LifecycleEventObserver { _, event ->
+                        when (event) {
+                            Lifecycle.Event.ON_RESUME -> {
+                                Log.d("AMapProvider", "MapView onResume")
+                                mapView?.onResume()
+                            }
+                            Lifecycle.Event.ON_PAUSE -> {
+                                Log.d("AMapProvider", "MapView onPause")
+                                mapView?.onPause()
+                            }
+                            Lifecycle.Event.ON_DESTROY -> {
+                                Log.d("AMapProvider", "MapView onDestroy")
+                                mapView?.onDestroy()
+                                mapView = null
+                                aMap = null
+                                marker = null
+                                geocodeSearch = null
+                            }
+                            else -> {}
+                        }
+                    }
+                    
+                    // 添加生命周期观察者
+                    lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+                    //用于释放资源
+                    onDispose {
+                        // 移除生命周期观察者
+                        lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+                        // 确保清理资源
+                        mapView?.onDestroy()
+                        mapView = null
+                        aMap = null
+                        marker = null
+                        geocodeSearch = null
+                    }
+                }
                 
                 // 底部信息卡片
                 Card(
@@ -408,6 +451,8 @@ class AMapProvider : MapProvider {
         aMap = null
         marker = null
         geocodeSearch = null
+        // 不要重置isInitialized状态，保持provider可用
+        // isInitialized = false
     }
     
     fun onLowMemory() {

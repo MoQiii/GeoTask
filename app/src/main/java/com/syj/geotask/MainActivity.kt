@@ -130,28 +130,12 @@ class MainActivity : ComponentActivity() {
         }
     }
     
-    override fun onResume() {
-        super.onResume()
-        MapManager.onResume()
-    }
-    
-    override fun onPause() {
-        super.onPause()
-        MapManager.onPause()
-    }
-    
     override fun onDestroy() {
         super.onDestroy()
-        MapManager.onDestroy()
-    }
-    
-    override fun onLowMemory() {
-        super.onLowMemory()
-        MapManager.onLowMemory()
-    }
-    
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        MapManager.onSaveInstanceState(outState)
+        // 检查是否正在真正退出应用（而不是配置变更）
+        if (isFinishing) {
+            MapManager.destroyCompletely()
+        }
+        // 注意：地图生命周期现在由AMapProvider内部自动管理，不需要手动调用
     }
 }

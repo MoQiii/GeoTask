@@ -72,26 +72,39 @@ object MapManager {
     
     /**
      * 处理地图生命周期事件
+     * 注意：现在生命周期由AMapProvider内部通过DisposableEffect自动管理
+     * 这些方法保留用于兼容性，但实际不再需要手动调用
      */
+    @Deprecated("生命周期现在由AMapProvider内部自动管理", level = DeprecationLevel.WARNING)
     fun onResume() {
-        aMapProvider?.onResume()
+        // 不再需要手动调用，生命周期由DisposableEffect处理
     }
     
+    @Deprecated("生命周期现在由AMapProvider内部自动管理", level = DeprecationLevel.WARNING)
     fun onPause() {
-        aMapProvider?.onPause()
+        // 不再需要手动调用，生命周期由DisposableEffect处理
     }
     
+    @Deprecated("生命周期现在由AMapProvider内部自动管理", level = DeprecationLevel.WARNING)
     fun onDestroy() {
-        aMapProvider?.onDestroy()
+        // 不再需要手动调用，生命周期由DisposableEffect处理
+    }
+    
+    /**
+     * 完全销毁地图管理器（仅在应用退出时调用）
+     */
+    fun destroyCompletely() {
         aMapProvider = null
         currentProvider = null
     }
     
+    @Deprecated("生命周期现在由AMapProvider内部自动管理", level = DeprecationLevel.WARNING)
     fun onLowMemory() {
-        aMapProvider?.onLowMemory()
+        // 不再需要手动调用，生命周期由DisposableEffect处理
     }
     
+    @Deprecated("生命周期现在由AMapProvider内部自动管理", level = DeprecationLevel.WARNING)
     fun onSaveInstanceState(outState: Bundle) {
-        aMapProvider?.onSaveInstanceState(outState)
+        // 不再需要手动调用，生命周期由DisposableEffect处理
     }
 }
