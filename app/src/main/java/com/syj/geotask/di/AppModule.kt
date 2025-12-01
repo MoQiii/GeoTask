@@ -12,6 +12,7 @@ import com.syj.geotask.data.service.NotificationService
 import com.syj.geotask.domain.repository.TaskRepository
 import com.syj.geotask.domain.repository.UserRepository
 import com.syj.geotask.domain.usecase.*
+import com.syj.geotask.presentation.theme.ThemeManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -89,6 +90,12 @@ object AppModule {
     @Singleton
     fun provideGeofenceManager(@ApplicationContext context: Context): GeofenceManager {
         return GeofenceManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideThemeManager(@ApplicationContext context: Context): ThemeManager {
+        return ThemeManager(context)
     }
 
     // Task related UseCases

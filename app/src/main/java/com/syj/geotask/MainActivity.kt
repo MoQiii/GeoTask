@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -24,6 +25,7 @@ import com.syj.geotask.presentation.screens.SettingsScreen
 import com.syj.geotask.presentation.screens.TaskDetailScreen
 import com.syj.geotask.presentation.screens.TaskListScreen
 import com.syj.geotask.presentation.theme.GeoTaskTheme
+import com.syj.geotask.presentation.theme.ThemeManager
 import com.syj.geotask.utils.LogTest
 import com.syj.geotask.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,9 +33,13 @@ import timber.log.Timber
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var themeManager: ThemeManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +61,18 @@ class MainActivity : ComponentActivity() {
         LogTest.testLogging(this)
         
         setContent {
-            GeoTaskTheme {
+            var darkMode by remember { mutableStateOf(false) }
+            
+            // 监听主题变化
+            LaunchedEffect(Unit) {
+                themeManager.darkModeFlow.collect { isDarkMode ->
+                    darkMode = isDarkMode
+                }
+            }
+            
+            GeoTaskTheme(
+                darkTheme = darkMode
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -162,7 +179,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToAbout = {
                                     navController.navigate("about")
-                                }
+                                },
+                                themeManager = themeManager
                             )
                         }
 

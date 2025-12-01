@@ -9,16 +9,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
+import com.syj.geotask.presentation.theme.ThemeManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToAbout: () -> Unit
+    onNavigateToAbout: () -> Unit,
+    themeManager: ThemeManager
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var darkModeEnabled by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // 监听深色模式状态
+    LaunchedEffect(Unit) {
+        themeManager.darkModeFlow.collect { isDarkMode ->
+            darkModeEnabled = isDarkMode
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -92,7 +102,12 @@ fun SettingsScreen(
                     }
                     Switch(
                         checked = darkModeEnabled,
-                        onCheckedChange = { darkModeEnabled = it }
+                        onCheckedChange = { isEnabled ->
+                            darkModeEnabled = isEnabled
+                            coroutineScope.launch {
+                                themeManager.setDarkMode(isEnabled)
+                            }
+                        }
                     )
                 }
             }
