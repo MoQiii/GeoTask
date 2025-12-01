@@ -7,9 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.syj.geotask.domain.model.Task
 import com.syj.geotask.domain.usecase.AddTaskUseCase
+import com.syj.geotask.domain.usecase.AddTaskWithGeofenceUseCase
 import com.syj.geotask.domain.usecase.DeleteTaskUseCase
+import com.syj.geotask.domain.usecase.DeleteTaskWithGeofenceUseCase
 import com.syj.geotask.domain.usecase.GetTasksUseCase
 import com.syj.geotask.domain.usecase.UpdateTaskUseCase
+import com.syj.geotask.domain.usecase.UpdateTaskWithGeofenceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,14 +20,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
     private val getTasksUseCase: GetTasksUseCase,
     private val addTaskUseCase: AddTaskUseCase,
+    private val addTaskWithGeofenceUseCase: AddTaskWithGeofenceUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
-    private val deleteTaskUseCase: DeleteTaskUseCase
+    private val updateTaskWithGeofenceUseCase: UpdateTaskWithGeofenceUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
+    private val deleteTaskWithGeofenceUseCase: DeleteTaskWithGeofenceUseCase
 ) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
@@ -38,6 +45,31 @@ class TaskViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // 添加任务表单状态
+    var taskTitle by mutableStateOf("")
+        private set
+    
+    var taskDescription by mutableStateOf("")
+        private set
+    
+    var selectedDate by mutableStateOf(Date())
+        private set
+    
+    var selectedTime by mutableStateOf(Date())
+        private set
+    
+    var isReminderEnabled by mutableStateOf(false)
+        private set
+    
+    var selectedLocation by mutableStateOf<String?>(null)
+        private set
+    
+    var selectedLatitude by mutableStateOf<Double?>(null)
+        private set
+    
+    var selectedLongitude by mutableStateOf<Double?>(null)
+        private set
 
     init {
         loadTasks()
@@ -92,6 +124,17 @@ class TaskViewModel @Inject constructor(
         }
     }
 
+    fun addTaskWithGeofence(task: Task) {
+        viewModelScope.launch {
+            try {
+                addTaskWithGeofenceUseCase(task)
+                loadTasks()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
     fun updateTask(task: Task) {
         viewModelScope.launch {
             try {
@@ -103,10 +146,32 @@ class TaskViewModel @Inject constructor(
         }
     }
 
+    fun updateTaskWithGeofence(task: Task) {
+        viewModelScope.launch {
+            try {
+                updateTaskWithGeofenceUseCase(task)
+                loadTasks()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
     fun deleteTask(task: Task) {
         viewModelScope.launch {
             try {
                 deleteTaskUseCase(task)
+                loadTasks()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    fun deleteTaskWithGeofence(task: Task) {
+        viewModelScope.launch {
+            try {
+                deleteTaskWithGeofenceUseCase(task)
                 loadTasks()
             } catch (e: Exception) {
                 // Handle error
@@ -144,6 +209,71 @@ class TaskViewModel @Inject constructor(
             getTasksUseCase.getTaskById(id)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    // 表单状态更新方法
+    fun updateTaskTitle(title: String) {
+        taskTitle = title
+    }
+
+    fun updateTaskDescription(description: String) {
+        taskDescription = description
+    }
+
+    fun updateSelectedDate(date: Date) {
+        selectedDate = date
+    }
+
+    fun updateSelectedTime(time: Date) {
+        selectedTime = time
+    }
+
+    fun updateReminderEnabled(enabled: Boolean) {
+        isReminderEnabled = enabled
+    }
+
+    fun updateSelectedLocation(location: String?, latitude: Double?, longitude: Double?) {
+        selectedLocation = location
+        selectedLatitude = latitude
+        selectedLongitude = longitude
+    }
+
+    // 清空表单状态
+    fun clearTaskForm() {
+        taskTitle = ""
+        taskDescription = ""
+        selectedDate = Date()
+        selectedTime = Date()
+        isReminderEnabled = false
+        selectedLocation = null
+        selectedLatitude = null
+        selectedLongitude = null
+    }
+
+    // 创建并保存任务
+    fun saveTask() {
+        if (taskTitle.isNotBlank()) {
+            val task = Task(
+                title = taskTitle,
+                description = taskDescription,
+                dueDate = selectedDate.time,
+                dueTime = selectedTime.time,
+                isReminderEnabled = isReminderEnabled,
+                location = selectedLocation,
+                latitude = selectedLatitude,
+                longitude = selectedLongitude
+            )
+            
+            // 如果有位置信息，使用带地理围栏的方法
+            if (selectedLocation != null && selectedLatitude != null && selectedLongitude != null) {
+                addTaskWithGeofence(task)
+            } else {
+                addTask(task)
+            }
+            
+            // 保存后清空表单
+            clearTaskForm()
         }
     }
 }

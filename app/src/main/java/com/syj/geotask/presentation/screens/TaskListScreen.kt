@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessAlarm
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -183,9 +185,9 @@ private fun TaskItemCard(
                     )
 
                     if (task.location != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Icon(
-                            imageVector = Icons.Default.Settings, // 临时图标，后续替换为位置图标
+                            imageVector = Icons.Default.LocationOn, // 临时图标，后续替换为位置图标
                             contentDescription = "有位置提醒",
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.primary
@@ -193,9 +195,9 @@ private fun TaskItemCard(
                     }
 
                     if (task.isReminderEnabled) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Icon(
-                            imageVector = Icons.Default.Settings, // 临时图标，后续替换为提醒图标
+                            imageVector = Icons.Default.AccessAlarm, // 临时图标，后续替换为提醒图标
                             contentDescription = "已启用提醒",
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.secondary

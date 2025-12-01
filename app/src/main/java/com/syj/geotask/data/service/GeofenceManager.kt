@@ -18,7 +18,9 @@ class GeofenceManager(private val context: Context) {
     private val geofencingClient: GeofencingClient = LocationServices.getGeofencingClient(context)
 
     companion object {
-        private const val GEOFENCE_RADIUS_IN_METERS = 200f
+        private const val DEFAULT_GEOFENCE_RADIUS_IN_METERS = 200f
+        private const val MIN_GEOFENCE_RADIUS_IN_METERS = 100f
+        private const val MAX_GEOFENCE_RADIUS_IN_METERS = 500f
         private const val GEOFENCE_EXPIRATION = Geofence.NEVER_EXPIRE
         private const val GEOFENCE_TRANSITION = Geofence.GEOFENCE_TRANSITION_ENTER
     }
@@ -30,12 +32,15 @@ class GeofenceManager(private val context: Context) {
         }
 
         return try {
+            // 使用任务中配置的地理围栏半径，确保在合理范围内
+            val radius = task.geofenceRadius.coerceIn(MIN_GEOFENCE_RADIUS_IN_METERS, MAX_GEOFENCE_RADIUS_IN_METERS)
+            
             val geofence = Geofence.Builder()
                 .setRequestId(task.id.toString())
                 .setCircularRegion(
                     task.latitude,
                     task.longitude,
-                    GEOFENCE_RADIUS_IN_METERS
+                    radius
                 )
                 .setExpirationDuration(GEOFENCE_EXPIRATION)
                 .setTransitionTypes(GEOFENCE_TRANSITION)

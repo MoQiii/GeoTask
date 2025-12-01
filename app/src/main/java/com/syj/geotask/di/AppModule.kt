@@ -11,8 +11,7 @@ import com.syj.geotask.data.service.GeofenceManager
 import com.syj.geotask.data.service.NotificationService
 import com.syj.geotask.domain.repository.TaskRepository
 import com.syj.geotask.domain.repository.UserRepository
-import com.syj.geotask.domain.usecase.LoginUseCase
-import com.syj.geotask.domain.usecase.RegisterUseCase
+import com.syj.geotask.domain.usecase.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -54,8 +53,12 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideTaskRepository(taskDao: TaskDao): TaskRepository {
-        return TaskRepositoryImpl(taskDao)
+    fun provideTaskRepository(
+        taskDao: TaskDao,
+        geofenceManager: GeofenceManager,
+        @ApplicationContext context: Context
+    ): TaskRepository {
+        return TaskRepositoryImpl(taskDao, geofenceManager, context)
     }
 
     @Provides
@@ -86,5 +89,48 @@ object AppModule {
     @Singleton
     fun provideGeofenceManager(@ApplicationContext context: Context): GeofenceManager {
         return GeofenceManager(context)
+    }
+
+    // Task related UseCases
+    @Provides
+    @Singleton
+    fun provideGetTasksUseCase(taskRepository: TaskRepository): GetTasksUseCase {
+        return GetTasksUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddTaskUseCase(taskRepository: TaskRepository): AddTaskUseCase {
+        return AddTaskUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAddTaskWithGeofenceUseCase(taskRepository: TaskRepository): AddTaskWithGeofenceUseCase {
+        return AddTaskWithGeofenceUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateTaskUseCase(taskRepository: TaskRepository): UpdateTaskUseCase {
+        return UpdateTaskUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdateTaskWithGeofenceUseCase(taskRepository: TaskRepository): UpdateTaskWithGeofenceUseCase {
+        return UpdateTaskWithGeofenceUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteTaskUseCase(taskRepository: TaskRepository): DeleteTaskUseCase {
+        return DeleteTaskUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeleteTaskWithGeofenceUseCase(taskRepository: TaskRepository): DeleteTaskWithGeofenceUseCase {
+        return DeleteTaskWithGeofenceUseCase(taskRepository)
     }
 }

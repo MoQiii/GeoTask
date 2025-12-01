@@ -14,4 +14,10 @@ interface TaskRepository {
     suspend fun deleteTaskById(id: Long)
     suspend fun updateTaskCompletionStatus(id: Long, isCompleted: Boolean)
     suspend fun updateTaskReminderStatus(id: Long, isEnabled: Boolean)
+    
+    // 地理围栏相关方法
+    suspend fun insertTaskWithGeofence(task: Task): Long
+    suspend fun updateTaskWithGeofence(task: Task)
+    suspend fun deleteTaskWithGeofence(task: Task)
+    suspend fun deleteTaskByIdWithGeofence(id: Long)
 }

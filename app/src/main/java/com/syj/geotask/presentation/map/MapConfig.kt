@@ -1,7 +1,7 @@
 package com.syj.geotask.presentation.map
 
 import android.content.Context
-import android.util.Log
+import timber.log.Timber
 
 /**
  * 地图配置类
@@ -37,21 +37,21 @@ object MapConfig {
             )
             val apiKey = appInfo.metaData?.getString(AMAP_API_KEY_META_DATA) ?: ""
             
-            Log.d("MapConfig", "尝试读取高德地图API密钥...")
-            Log.d("MapConfig", "meta-data键名: $AMAP_API_KEY_META_DATA")
-            Log.d("MapConfig", "读取到的API密钥: '$apiKey'")
-            Log.d("MapConfig", "API密钥长度: ${apiKey.length}")
-            Log.d("MapConfig", "meta-data内容: ${appInfo.metaData?.keySet()?.joinToString(", ")}")
+            Timber.d("尝试读取高德地图API密钥...")
+            Timber.d("meta-data键名: $AMAP_API_KEY_META_DATA")
+            Timber.d("读取到的API密钥: '$apiKey'")
+            Timber.d("API密钥长度: ${apiKey.length}")
+            Timber.d("meta-data内容: ${appInfo.metaData?.keySet()?.joinToString(", ")}")
             
             if (apiKey.isEmpty()) {
-                Log.e("MapConfig", "高德地图API密钥未在AndroidManifest.xml中配置")
+                Timber.e("高德地图API密钥未在AndroidManifest.xml中配置")
             } else {
-                Log.d("MapConfig", "成功读取高德地图API密钥: ${apiKey.take(8)}...")
+                Timber.d("成功读取高德地图API密钥: ${apiKey.take(8)}...")
             }
             
             apiKey
         } catch (e: Exception) {
-            Log.e("MapConfig", "读取高德地图API密钥失败", e)
+            Timber.e(e, "读取高德地图API密钥失败")
             ""
         }
     }
@@ -61,11 +61,35 @@ object MapConfig {
      */
     fun isApiKeyConfigured(context: Context, providerName: String): Boolean {
         val apiKey = getApiKey(context, providerName)
-        return apiKey.isNotEmpty() && 
+        val isConfigured = apiKey.isNotEmpty() && 
                apiKey != "your_amap_api_key_here" &&
                !apiKey.contains("your_") &&
                !apiKey.contains("_here") &&
                apiKey.length >= 20 // 高德地图API密钥通常至少20个字符
+        
+        Timber.d("API密钥验证: provider=$providerName, configured=$isConfigured, length=${apiKey.length}")
+        
+        // 额外检查：确保API密钥不是测试密钥或无效密钥
+        val isValidKey = when (providerName) {
+            "AMap" -> {
+                // 高德地图API密钥格式检查（通常是32位十六进制字符串）
+                val isHexPattern = apiKey.matches(Regex("^[a-fA-F0-9]{32}$"))
+                val isKnownTestKey = apiKey == "c5246ec1319a09e249ddf141fcc63447" // 当前配置的测试密钥
+                
+                Timber.d("高德地图密钥检查: isHexPattern=$isHexPattern, isKnownTestKey=$isKnownTestKey")
+                
+                // 允许测试密钥，但记录警告
+                if (isKnownTestKey) {
+                    Timber.w("使用的是高德地图测试密钥，可能存在使用限制")
+                }
+                
+                isConfigured && (isHexPattern || isKnownTestKey)
+            }
+            else -> isConfigured
+        }
+        
+        Timber.d("最终API密钥验证结果: provider=$providerName, valid=$isValidKey")
+        return isValidKey
     }
     
     /**

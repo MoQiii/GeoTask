@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.syj.geotask.domain.model.Task
 import com.syj.geotask.presentation.viewmodel.TaskViewModel
 import java.text.SimpleDateFormat
@@ -21,19 +24,45 @@ import java.util.*
 fun AddTaskScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMapPicker: () -> Unit,
-    viewModel: TaskViewModel = hiltViewModel()
+    viewModel: TaskViewModel = hiltViewModel(),
+    navController: NavController
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(Date()) }
-    var selectedTime by remember { mutableStateOf(Date()) }
-    var isReminderEnabled by remember { mutableStateOf(false) }
-    var selectedLocation by remember { mutableStateOf<String?>(null) }
-    var selectedLatitude by remember { mutableStateOf<Double?>(null) }
-    var selectedLongitude by remember { mutableStateOf<Double?>(null) }
+    // 获取当前的NavController来监听返回的位置数据
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    
+    // 使用ViewModel中的状态，而不是本地的remember状态
+    val title = viewModel.taskTitle
+    val description = viewModel.taskDescription
+    val selectedDate = viewModel.selectedDate
+    val selectedTime = viewModel.selectedTime
+    val isReminderEnabled = viewModel.isReminderEnabled
+    val selectedLocation = viewModel.selectedLocation
+    val selectedLatitude = viewModel.selectedLatitude
+    val selectedLongitude = viewModel.selectedLongitude
     
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    // 监听从MapPickerScreen返回的位置数据
+    LaunchedEffect(Unit) {
+        // 使用一个标志来确保只监听一次
+        var hasProcessed = false
+        
+        while (!hasProcessed) {
+            currentBackStackEntry?.let { backStackEntry ->
+                // 使用 get 方法获取数据
+                val locationData = backStackEntry.savedStateHandle.get<Triple<String, Double, Double>>("selected_location")
+                locationData?.let { (location, lat, lng) ->
+                    // 更新ViewModel中的位置状态
+                    viewModel.updateSelectedLocation(location, lat, lng)
+                    // 清除已处理的数据
+                    backStackEntry.savedStateHandle.remove<Triple<String, Double, Double>>("selected_location")
+                    hasProcessed = true
+                }
+            }
+            kotlinx.coroutines.delay(100) // 每100ms检查一次
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -57,7 +86,7 @@ fun AddTaskScreen(
             // Title Input
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { viewModel.updateTaskTitle(it) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("标题 *") },
                 singleLine = true,
@@ -67,7 +96,7 @@ fun AddTaskScreen(
             // Description Input
             OutlinedTextField(
                 value = description,
-                onValueChange = { description = it },
+                onValueChange = { viewModel.updateTaskDescription(it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
@@ -124,7 +153,7 @@ fun AddTaskScreen(
                 )
                 Switch(
                     checked = isReminderEnabled,
-                    onCheckedChange = { isReminderEnabled = it }
+                    onCheckedChange = { viewModel.updateReminderEnabled(it) }
                 )
             }
 
@@ -140,19 +169,14 @@ fun AddTaskScreen(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium
                     )
-                    if (selectedLocation != null) {
-                        Text(
-                            text = selectedLocation!!,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = "未设置",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = selectedLocation ?: "未设置",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (selectedLocation != null) 
+                            MaterialTheme.colorScheme.primary 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 OutlinedButton(
                     onClick = onNavigateToMapPicker
@@ -172,20 +196,8 @@ fun AddTaskScreen(
             // Save Button
             Button(
                 onClick = {
-                    if (title.isNotBlank()) {
-                        val task = Task(
-                            title = title,
-                            description = description,
-                            dueDate = selectedDate.time,
-                            dueTime = selectedTime.time,
-                            isReminderEnabled = isReminderEnabled,
-                            location = selectedLocation,
-                            latitude = selectedLatitude,
-                            longitude = selectedLongitude
-                        )
-                        viewModel.addTask(task)
-                        onNavigateBack()
-                    }
+                    viewModel.saveTask()
+                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = title.isNotBlank()
@@ -199,7 +211,7 @@ fun AddTaskScreen(
     if (showDatePicker) {
         DatePickerDialog(
             onDateSelected = { date ->
-                selectedDate = date
+                viewModel.updateSelectedDate(date)
                 showDatePicker = false
             },
             onDismiss = { showDatePicker = false },
@@ -211,7 +223,7 @@ fun AddTaskScreen(
     if (showTimePicker) {
         TimePickerDialog(
             onTimeSelected = { time ->
-                selectedTime = time
+                viewModel.updateSelectedTime(time)
                 showTimePicker = false
             },
             onDismiss = { showTimePicker = false },

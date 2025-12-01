@@ -38,6 +38,11 @@ fun MapPickerScreen(
     var selectedLng by remember { mutableStateOf(initialLng) }
     var isLocationConfirmed by remember { mutableStateOf(false) }
     
+    // 初始化MapManager
+    LaunchedEffect(key1 = context) {
+        MapManager.initialize(context)
+    }
+    
     // 监听返回键
     BackHandler {
         onBackClick()

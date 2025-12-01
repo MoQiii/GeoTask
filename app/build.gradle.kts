@@ -17,6 +17,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // 16 KB页面大小兼容性配置
+        ndk {
+            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+        }
     }
 
     buildTypes {
@@ -41,6 +46,38 @@ android {
     buildFeatures {
         compose = true
     }
+    packagingOptions {
+        jniLibs {
+            // 16 KB 页面大小兼容性：必须禁用 legacy 打包方式
+            useLegacyPackaging = false
+
+            // 解决重复 so 的问题（Pick first）
+            pickFirsts.add("**/libc++_shared.so")
+            pickFirsts.add("**/libjsc.so")
+        }
+
+        resources {
+            excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+        }
+    }
+//    packaging {
+//        // 16 KB页面大小兼容性配置
+//        // 解决高德地图SDK的native库对齐问题
+//        jniLibs {
+//            useLegacyPackaging = false
+//        }
+//
+//        // 排除重复的库文件
+//        resources {
+//            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+//        }
+//
+//        // 16 KB页面大小对齐
+//        jniLibs {
+//            pickFirsts += "**/libc++_shared.so"
+//            pickFirsts += "**/libjsc.so"
+//        }
+//    }
 }
 
 dependencies {
@@ -77,11 +114,12 @@ dependencies {
     // Location Services
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
-    // 高德地图SDK - 使用稳定版本
-    // 3D地图SDK (已包含定位功能)
-    implementation("com.amap.api:3dmap:9.7.0")
-    // 搜索SDK
-    implementation("com.amap.api:search:9.5.0")
+    // 高德地图SDK - 升级到最新版本，支持16 KB页面大小
+    // 3D地图SDK (已包含定位功能，无需单独添加定位SDK)
+//    implementation("com.amap.api:3dmap:9.7.0")
+//    // 搜索SDK
+//    implementation("com.amap.api:search:9.7.0")
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
     // Permissions
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
@@ -89,6 +127,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // Timber for logging
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.syj.geotask.domain.model.Task
 import com.syj.geotask.presentation.viewmodel.TaskViewModel
 import java.text.SimpleDateFormat
@@ -22,8 +24,11 @@ fun EditTaskScreen(
     taskId: Long,
     onNavigateBack: () -> Unit,
     onNavigateToMapPicker: () -> Unit,
-    viewModel: TaskViewModel = hiltViewModel()
+    viewModel: TaskViewModel = hiltViewModel(),
+    navController: NavController
 ) {
+    // 获取当前的NavController来监听返回的位置数据
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
     var task by remember { mutableStateOf<Task?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -39,6 +44,28 @@ fun EditTaskScreen(
     
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    // 监听从MapPickerScreen返回的位置数据
+    LaunchedEffect(Unit) {
+        // 使用一个标志来确保只监听一次
+        var hasProcessed = false
+        
+        while (!hasProcessed) {
+            currentBackStackEntry?.let { backStackEntry ->
+                // 使用 get 方法获取数据
+                val locationData = backStackEntry.savedStateHandle.get<Triple<String, Double, Double>>("selected_location")
+                locationData?.let { (location, lat, lng) ->
+                    selectedLocation = location
+                    selectedLatitude = lat
+                    selectedLongitude = lng
+                    // 清除已处理的数据
+                    backStackEntry.savedStateHandle.remove<Triple<String, Double, Double>>("selected_location")
+                    hasProcessed = true
+                }
+            }
+            kotlinx.coroutines.delay(100) // 每100ms检查一次
+        }
+    }
 
     LaunchedEffect(taskId) {
         isLoading = true
@@ -180,19 +207,14 @@ fun EditTaskScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Medium
                         )
-                        if (selectedLocation != null) {
-                            Text(
-                                text = selectedLocation!!,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        } else {
-                            Text(
-                                text = "未设置",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            text = selectedLocation ?: "未设置",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (selectedLocation != null) 
+                                MaterialTheme.colorScheme.primary 
+                            else 
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     OutlinedButton(
                         onClick = onNavigateToMapPicker
