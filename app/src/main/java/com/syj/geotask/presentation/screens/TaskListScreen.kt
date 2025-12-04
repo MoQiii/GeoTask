@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessAlarm
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -29,6 +30,7 @@ fun TaskListScreen(
     onNavigateToAddTask: () -> Unit,
     onNavigateToTaskDetail: (Long) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToSpeechTest: () -> Unit = {},
     viewModel: TaskViewModel = hiltViewModel()
 ) {
     val tasks by viewModel.tasks.collectAsState()
@@ -50,6 +52,9 @@ fun TaskListScreen(
             TopAppBar(
                 title = { Text("GeoTask") },
                 actions = {
+                    IconButton(onClick = onNavigateToSpeechTest) {
+                        Icon(Icons.Default.Mic, contentDescription = "语音测试")
+                    }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }

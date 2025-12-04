@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,10 +10,10 @@ plugins {
 android {
     namespace = "com.syj.geotask"
     compileSdk = 36
-
+    ndkVersion = "27.0.12077973"
     defaultConfig {
         applicationId = "com.syj.geotask"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -23,7 +25,12 @@ android {
             abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
         }
     }
-
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("src/main/jniLibs")
+            assets.srcDirs("src/main/assets")
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -60,6 +67,7 @@ android {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
     }
+    ndkVersion = "27.0.12077973"
 //    packaging {
 //        // 16 KB页面大小兼容性配置
 //        // 解决高德地图SDK的native库对齐问题
@@ -81,6 +89,7 @@ android {
 }
 
 dependencies {
+//    implementation(project(":lib"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -110,6 +119,8 @@ dependencies {
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-work:1.2.0")
+    // 添加 Hilt WorkManager 的 kapt 依赖
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
 
     // Location Services
     implementation("com.google.android.gms:play-services-location:21.2.0")
@@ -133,6 +144,9 @@ dependencies {
 
     // Timber for logging
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+    // Whisper Library (local module)
+//    implementation(project(":lib"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -7,12 +7,15 @@ import com.syj.geotask.data.datasource.local.TaskDao
 import com.syj.geotask.data.datasource.local.UserDao
 import com.syj.geotask.data.repository.TaskRepositoryImpl
 import com.syj.geotask.data.repository.UserRepositoryImpl
-import com.syj.geotask.data.service.GeofenceManager
+import com.syj.geotask.data.service.GeofenceManagerFactory
+import com.syj.geotask.data.service.IGeofenceManager
 import com.syj.geotask.data.service.NotificationService
+import com.syj.geotask.data.service.TaskReminderManager
 import com.syj.geotask.domain.repository.TaskRepository
 import com.syj.geotask.domain.repository.UserRepository
 import com.syj.geotask.domain.usecase.*
 import com.syj.geotask.presentation.theme.ThemeManager
+import com.syj.geotask.speech123.SpeechToTextManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -56,7 +59,7 @@ object AppModule {
     @Singleton
     fun provideTaskRepository(
         taskDao: TaskDao,
-        geofenceManager: GeofenceManager,
+        geofenceManager: IGeofenceManager,
         @ApplicationContext context: Context
     ): TaskRepository {
         return TaskRepositoryImpl(taskDao, geofenceManager, context)
@@ -88,8 +91,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGeofenceManager(@ApplicationContext context: Context): GeofenceManager {
-        return GeofenceManager(context)
+    fun provideGeofenceManagerFactory(@ApplicationContext context: Context): GeofenceManagerFactory {
+        return GeofenceManagerFactory(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGeofenceManager(geofenceManagerFactory: GeofenceManagerFactory): IGeofenceManager {
+        return geofenceManagerFactory.getGeofenceManager()
     }
 
     @Provides
@@ -139,5 +148,17 @@ object AppModule {
     @Singleton
     fun provideDeleteTaskWithGeofenceUseCase(taskRepository: TaskRepository): DeleteTaskWithGeofenceUseCase {
         return DeleteTaskWithGeofenceUseCase(taskRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTaskReminderManager(@ApplicationContext context: Context): TaskReminderManager {
+        return TaskReminderManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSpeechToTextManager(@ApplicationContext context: Context): SpeechToTextManager {
+        return SpeechToTextManager(context)
     }
 }

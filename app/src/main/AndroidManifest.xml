@@ -27,6 +27,8 @@
     <!-- 用于申请获取蓝牙信息进行室内定位 -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <!-- 添加录音权限 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:name=".GeoTaskApplication"
@@ -55,6 +57,16 @@
             android:name=".data.receiver.GeofenceBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
+        
+        <!-- 高德地图地理围栏广播接收器 -->
+<!--        <receiver-->
+<!--            android:name=".data.receiver.AMapGeofenceReceiver"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="false">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.amap.geofence.action" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
             
         <!-- 高德地图API密钥配置 -->
         <!-- 开发阶段使用测试密钥，发布时请替换为正式密钥 -->
@@ -67,6 +79,18 @@
         
         <!-- 高德地图搜索服务 -->
 <!--        <service android:name="com.amap.api.services.core.AMapService" />-->
+        
+        <!-- WorkManager初始化配置 -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
         
     </application>
 

@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "GeoTask"
 include(":app")
+//include(":lib")

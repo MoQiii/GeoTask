@@ -2,7 +2,7 @@ package com.syj.geotask.data.repository
 
 import android.content.Context
 import com.syj.geotask.data.datasource.local.TaskDao
-import com.syj.geotask.data.service.GeofenceManager
+import com.syj.geotask.data.service.IGeofenceManager
 import com.syj.geotask.domain.model.Task
 import com.syj.geotask.domain.repository.TaskRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +12,7 @@ import javax.inject.Singleton
 @Singleton
 class TaskRepositoryImpl @Inject constructor(
     private val taskDao: TaskDao,
-    private val geofenceManager: GeofenceManager,
+    private val geofenceManager: IGeofenceManager,
     private val context: Context
 ) : TaskRepository {
     

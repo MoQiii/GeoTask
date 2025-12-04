@@ -41,6 +41,8 @@ class AMapProvider : MapProvider {
     private var aMap: AMap? = null
     private var marker: Marker? = null
     private var geocodeSearch: GeocodeSearch? = null
+    private var currentTimeoutHandler: android.os.Handler? = null
+    private var currentTimeoutRunnable: Runnable? = null
     
     override fun getProviderName(): String = "AMap"
     
@@ -95,9 +97,96 @@ class AMapProvider : MapProvider {
         val lifecycleOwner = LocalLifecycleOwner.current
         
         // 状态管理
-        var selectedAddress by remember { mutableStateOf("正在获取地址...") }
+        var selectedAddress by remember { mutableStateOf("") }
         var isLoading by remember { mutableStateOf(false) }
         var mapReady by remember { mutableStateOf(false) }
+        var currentLat by remember { mutableStateOf(initialLat) }
+        var currentLng by remember { mutableStateOf(initialLng) }
+        var isGettingInitialLocation by remember { mutableStateOf(false) }
+        
+        // 检查初始坐标是否有效（不是0.0, 0.0）
+        val isValidInitialLocation = initialLat != 0.0 || initialLng != 0.0
+        
+        // 如果初始坐标无效，尝试获取用户当前位置
+        LaunchedEffect(key1 = context, key2 = mapReady) {
+            if (mapReady && !isValidInitialLocation && !isGettingInitialLocation) {
+                isGettingInitialLocation = true
+                isLoading = true
+                selectedAddress = "正在获取当前位置..."
+                
+                try {
+                    // 确保权限已授予
+                    if (!PermissionUtils.hasLocationPermission(context)) {
+                        Timber.w("❌ 位置权限未授予，等待权限申请...")
+                        selectedAddress = "等待位置权限授权..."
+                        isGettingInitialLocation = false
+                        isLoading = false
+                        return@LaunchedEffect
+                    }
+                    
+                    // 使用高德地图定位服务获取当前位置（包含地址）
+                    val aMapLocationService = com.syj.geotask.data.service.AMapLocationService(context)
+                    
+                    Timber.d("📍 开始获取当前位置（包含地址）...")
+                    
+                    // 直接调用挂起函数，让 LaunchedEffect 处理协程
+                    val (location, address) = aMapLocationService.getCurrentLocationWithAddress()
+                    
+                    // 处理位置获取结果
+                    if (location != null) {
+                        currentLat = location.latitude
+                        currentLng = location.longitude
+                        Timber.d("✅ 获取当前位置成功: lat=${location.latitude}, lng=${location.longitude}")
+                        
+                        // 更新地图中心位置
+                        aMap?.let { map ->
+                            val newPosition = LatLng(location.latitude, location.longitude)
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(newPosition, 15f))
+                            marker?.position = newPosition
+                        }
+                        
+                        // 优先使用定位服务返回的地址
+                        if (!address.isNullOrEmpty()) {
+                            selectedAddress = address
+                            isLoading = false
+                            Timber.d("✅ 地址更新完成（来自定位服务）: $address")
+                        } else {
+                            // 如果定位服务没有返回地址，则进行反向地理编码
+                            selectedAddress = "正在获取地址信息..."
+                            reverseGeocode(location.latitude, location.longitude) { address ->
+                                selectedAddress = address
+                                isLoading = false
+                                Timber.d("✅ 地址更新完成（来自反向地理编码）: $address")
+                            }
+                        }
+                    } else {
+                        Timber.w("⚠️ 无法获取当前位置，继续重试")
+                        // 继续尝试获取当前位置，不使用硬编码位置
+                        selectedAddress = "正在重试获取当前位置..."
+                        // 重置标志位，允许下次继续尝试
+                        isGettingInitialLocation = false
+                        isLoading = false // 重要：重置加载状态
+                        // 延迟后重试
+                        kotlinx.coroutines.delay(2000) // 延迟2秒重试
+                    }
+                    
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    // 协程被取消，这是正常情况，不需要处理
+                    Timber.d("位置获取协程被取消")
+                    isGettingInitialLocation = false
+                    isLoading = false // 重要：重置加载状态
+                } catch (e: Exception) {
+                    Timber.e(e, "❌ 获取当前位置异常")
+                    // 位置服务异常，继续重试而不使用硬编码位置
+                    selectedAddress = "位置服务异常，正在重试..."
+                    // 重置标志位，允许下次继续尝试
+                    isGettingInitialLocation = false
+                    isLoading = false // 重要：重置加载状态
+                    // 延迟后重试
+                    kotlinx.coroutines.delay(3000) // 延迟3秒重试
+                }
+            }
+        }
         
         // 初始化地图提供者
         LaunchedEffect(key1 = context) {
@@ -248,10 +337,21 @@ class AMapProvider : MapProvider {
                             // 获取地图控制器 - 尝试直接获取
                             try {
                                 aMap = this.map
-                                setupMap(aMap!!, initialLat, initialLng, onLocationSelected) { address ->
-                                    selectedAddress = address
-                                    isLoading = false
-                                }
+                                setupMap(
+                                    map = aMap!!,
+                                    initialLat = initialLat,
+                                    initialLng = initialLng,
+                                    isValidInitialLocation = isValidInitialLocation,
+                                    onLocationSelected = onLocationSelected,
+                                    onAddressUpdate = { address ->
+                                        selectedAddress = address
+                                        isLoading = false
+                                    },
+                                    onPositionUpdate = { lat, lng ->
+                                        currentLat = lat
+                                        currentLng = lng
+                                    }
+                                )
                                 
                                 // 初始化地理编码搜索
                                 initializeGeocodeSearch(ctx) { address ->
@@ -340,7 +440,7 @@ class AMapProvider : MapProvider {
                                     maxLines = 2
                                 )
                                 Text(
-                                    text = "坐标: ${String.format("%.6f", initialLat)}, ${String.format("%.6f", initialLng)}",
+                                    text = "坐标: ${String.format("%.6f", currentLat)}, ${String.format("%.6f", currentLng)}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -359,7 +459,7 @@ class AMapProvider : MapProvider {
                         Button(
                             onClick = {
                                 if (mapReady && selectedAddress != "正在获取地址..." && selectedAddress != "地址解析失败") {
-                                    onLocationSelected(selectedAddress, initialLat, initialLng)
+                                    onLocationSelected(selectedAddress, currentLat, currentLng)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
@@ -416,8 +516,10 @@ class AMapProvider : MapProvider {
         map: AMap,
         initialLat: Double,
         initialLng: Double,
+        isValidInitialLocation: Boolean,
         onLocationSelected: (String, Double, Double) -> Unit,
-        onAddressUpdate: (String) -> Unit
+        onAddressUpdate: (String) -> Unit,
+        onPositionUpdate: (Double, Double) -> Unit
     ) {
         try {
             // 设置地图UI设置
@@ -451,6 +553,9 @@ class AMapProvider : MapProvider {
                 marker?.position = latLng
                 map.animateCamera(CameraUpdateFactory.newLatLng(latLng))
                 
+                // 更新当前位置
+                onPositionUpdate(latLng.latitude, latLng.longitude)
+                
                 // 反向地理编码
                 onAddressUpdate("正在获取地址...")
                 reverseGeocode(latLng.latitude, latLng.longitude) { address ->
@@ -462,6 +567,9 @@ class AMapProvider : MapProvider {
             map.setOnMapLongClickListener { latLng ->
                 marker?.position = latLng
                 map.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+                
+                // 更新当前位置
+                onPositionUpdate(latLng.latitude, latLng.longitude)
                 
                 // 反向地理编码
                 onAddressUpdate("正在获取地址...")
@@ -482,6 +590,9 @@ class AMapProvider : MapProvider {
                     val position = marker.position
                     map.animateCamera(CameraUpdateFactory.newLatLng(position))
                     
+                    // 更新当前位置
+                    onPositionUpdate(position.latitude, position.longitude)
+                    
                     // 反向地理编码
                     onAddressUpdate("正在获取地址...")
                     reverseGeocode(position.latitude, position.longitude) { address ->
@@ -490,10 +601,15 @@ class AMapProvider : MapProvider {
                 }
             })
             
-            // 初始地址解析
-            onAddressUpdate("正在获取地址...")
-            reverseGeocode(initialLat, initialLng) { address ->
-                onAddressUpdate(address)
+            // 初始地址解析 - 只有当初始坐标有效时才进行
+            if (isValidInitialLocation) {
+                onAddressUpdate("正在获取地址...")
+                reverseGeocode(initialLat, initialLng) { address ->
+                    onAddressUpdate(address)
+                }
+            } else {
+                // 如果初始坐标无效，等待 LaunchedEffect 中的位置获取逻辑
+                onAddressUpdate("正在获取当前位置...")
             }
             
         } catch (e: Exception) {
@@ -568,6 +684,9 @@ class AMapProvider : MapProvider {
             // 设置监听器并执行查询
             search.setOnGeocodeSearchListener(object : GeocodeSearch.OnGeocodeSearchListener {
                 override fun onRegeocodeSearched(result: RegeocodeResult?, code: Int) {
+                    // 清除超时处理
+                    currentTimeoutHandler?.removeCallbacks(currentTimeoutRunnable ?: return)
+                    
                     Timber.d("反向地理编码回调触发: code=$code")
                     Timber.d("回调结果: result=$result")
                     
@@ -616,6 +735,9 @@ class AMapProvider : MapProvider {
                 }
                 
                 override fun onGeocodeSearched(result: GeocodeResult?, code: Int) {
+                    // 清除超时处理
+                    currentTimeoutHandler?.removeCallbacks(currentTimeoutRunnable ?: return)
+                    
                     // 正向地理编码结果，这里不需要
                     Timber.d("正向地理编码回调: code=$code")
                 }
@@ -623,19 +745,24 @@ class AMapProvider : MapProvider {
             
             Timber.d("监听器设置完成，开始执行查询")
             
-            // 执行异步查询
-            val resultCode = search.getFromLocationAsyn(query)
-            Timber.d("查询已发送，返回码: $resultCode")
-            
             // 设置超时处理
             var isTimeout = false
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            currentTimeoutHandler = android.os.Handler(android.os.Looper.getMainLooper())
+            currentTimeoutRunnable = Runnable {
                 if (!isTimeout) {
                     isTimeout = true
                     Timber.w("地址查询超时，可能是网络问题")
                     onResult("地址查询超时，请检查网络连接")
                 }
-            }, 10000) // 10秒超时
+            }
+            currentTimeoutHandler?.postDelayed(currentTimeoutRunnable!!, 10000) // 10秒超时
+            
+            // 执行异步查询
+            val resultCode = search.getFromLocationAsyn(query)
+            Timber.d("查询已发送，返回码: $resultCode")
+            
+            // 在回调中清除超时处理
+            // 这样可以确保即使回调成功执行，超时处理也不会被触发
             
         } catch (e: Exception) {
             Timber.e(e, "执行反向地理编码异常")
@@ -660,6 +787,12 @@ class AMapProvider : MapProvider {
         aMap = null
         marker = null
         geocodeSearch = null
+        
+        // 清理超时处理资源
+        currentTimeoutHandler?.removeCallbacks(currentTimeoutRunnable ?: return)
+        currentTimeoutHandler = null
+        currentTimeoutRunnable = null
+        
         // 不要重置isInitialized状态，保持provider可用
         // isInitialized = false
     }

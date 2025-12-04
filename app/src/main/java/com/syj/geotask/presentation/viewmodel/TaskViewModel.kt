@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
@@ -31,7 +32,8 @@ class TaskViewModel @Inject constructor(
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val updateTaskWithGeofenceUseCase: UpdateTaskWithGeofenceUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
-    private val deleteTaskWithGeofenceUseCase: DeleteTaskWithGeofenceUseCase
+    private val deleteTaskWithGeofenceUseCase: DeleteTaskWithGeofenceUseCase,
+    private val taskReminderManager: com.syj.geotask.data.service.TaskReminderManager
 ) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
@@ -234,6 +236,11 @@ class TaskViewModel @Inject constructor(
     }
 
     fun updateSelectedLocation(location: String?, latitude: Double?, longitude: Double?) {
+        Timber.d("📍 更新选中位置:")
+        Timber.d("  地址: $location")
+        Timber.d("  纬度: $latitude")
+        Timber.d("  经度: $longitude")
+        
         selectedLocation = location
         selectedLatitude = latitude
         selectedLongitude = longitude
@@ -254,6 +261,16 @@ class TaskViewModel @Inject constructor(
     // 创建并保存任务
     fun saveTask() {
         if (taskTitle.isNotBlank()) {
+            Timber.d("💾 开始保存任务:")
+            Timber.d("  标题: $taskTitle")
+            Timber.d("  描述: $taskDescription")
+            Timber.d("  日期: ${selectedDate}")
+            Timber.d("  时间: ${selectedTime}")
+            Timber.d("  启用提醒: $isReminderEnabled")
+            Timber.d("  位置地址: $selectedLocation")
+            Timber.d("  纬度: $selectedLatitude")
+            Timber.d("  经度: $selectedLongitude")
+            
             val task = Task(
                 title = taskTitle,
                 description = taskDescription,
@@ -265,11 +282,48 @@ class TaskViewModel @Inject constructor(
                 longitude = selectedLongitude
             )
             
-            // 如果有位置信息，使用带地理围栏的方法
-            if (selectedLocation != null && selectedLatitude != null && selectedLongitude != null) {
-                addTaskWithGeofence(task)
-            } else {
-                addTask(task)
+            Timber.d("📋 创建的任务对象:")
+            Timber.d("  title: ${task.title}")
+            Timber.d("  description: ${task.description}")
+            Timber.d("  dueDate: ${task.dueDate}")
+            Timber.d("  dueTime: ${task.dueTime}")
+            Timber.d("  isReminderEnabled: ${task.isReminderEnabled}")
+            Timber.d("  location: ${task.location}")
+            Timber.d("  latitude: ${task.latitude}")
+            Timber.d("  longitude: ${task.longitude}")
+            Timber.d("  geofenceRadius: ${task.geofenceRadius}")
+            
+            viewModelScope.launch {
+                try {
+                    // 保存任务并获取生成的ID
+                    val taskId: Long = if (selectedLocation != null && selectedLatitude != null && selectedLongitude != null) {
+                        val id = addTaskWithGeofenceUseCase(task)
+                        Timber.d("✅ 任务已保存（带地理围栏）: ${task.title}")
+                        id
+                    } else {
+                        val id = addTaskUseCase(task)
+                        Timber.d("✅ 任务已保存: ${task.title}")
+                        id
+                    }
+                    
+                    // 如果启用了提醒，调度精确提醒
+                    if (task.isReminderEnabled) {
+                        Timber.d("🔔 开始调度任务提醒: taskId=$taskId, title=${task.title}")
+                        taskReminderManager.scheduleTaskReminderForTime(
+                            taskId = taskId,
+                            dueDate = task.dueDate,
+                            dueTime = task.dueTime
+                        )
+                        Timber.d("✅ 任务提醒调度完成: ${task.title}")
+                    } else {
+                        Timber.d("⏸️ 任务未启用提醒: ${task.title}")
+                    }
+                    
+                    // 重新加载任务列表
+                    loadTasks()
+                } catch (e: Exception) {
+                    Timber.e(e, "❌ 保存任务失败: ${task.title}")
+                }
             }
             
             // 保存后清空表单

@@ -24,6 +24,7 @@ import com.syj.geotask.presentation.screens.MapPickerScreen
 import com.syj.geotask.presentation.screens.SettingsScreen
 import com.syj.geotask.presentation.screens.TaskDetailScreen
 import com.syj.geotask.presentation.screens.TaskListScreen
+import com.syj.geotask.speech123.SpeechTestScreen
 import com.syj.geotask.presentation.theme.GeoTaskTheme
 import com.syj.geotask.presentation.theme.ThemeManager
 import com.syj.geotask.utils.LogTest
@@ -33,7 +34,13 @@ import timber.log.Timber
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Process
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.LaunchedEffect
 import javax.inject.Inject
+import com.syj.geotask.data.service.NotificationService
+import com.syj.geotask.utils.AssetUtils
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -41,9 +48,40 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themeManager: ThemeManager
 
+    @Inject
+    lateinit var notificationService: NotificationService
+
+    // 通知权限请求器
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Timber.d("通知权限已授予")
+            // 权限授予后立即测试通知功能
+            testNotificationAfterPermissionGranted()
+        } else {
+            Timber.w("通知权限被拒绝")
+        }
+    }
+    
+    // 录音权限请求器
+    private val audioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Timber.d("录音权限已授予")
+        } else {
+            Timber.w("录音权限被拒绝")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        System.loadLibrary("whisper_jni")
+
+
+
 
         // 检查和记录权限状态
         checkAndLogPermissions()
@@ -51,14 +89,8 @@ class MainActivity : ComponentActivity() {
         // 初始化地图管理器
         MapManager.initialize(this)
         
-        // 测试Timber日志功能
-        Timber.d("MainActivity onCreate - 开始测试Timber日志")
-        Timber.i("应用启动完成")
-        Timber.w("这是一条警告日志")
-        Timber.e("这是一条错误日志")
-        
         // 测试LogTest工具类
-        LogTest.testLogging(this)
+//        LogTest.testLogging(this)
         
         setContent {
             var darkMode by remember { mutableStateOf(false) }
@@ -93,6 +125,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateToSettings = {
                                     navController.navigate("settings")
+                                },
+                                onNavigateToSpeechTest = {
+                                    navController.navigate("speech_test")
                                 }
                             )
                         }
@@ -191,6 +226,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        composable("speech_test") {
+                            SpeechTestScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -213,19 +256,79 @@ class MainActivity : ComponentActivity() {
         // 检查其他相关权限
         val networkStateGranted = checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) == PackageManager.PERMISSION_GRANTED
         val wifiStateGranted = checkSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED
+        val audioRecordGranted = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
         
         Timber.d("权限检查 - 网络状态权限: $networkStateGranted")
         Timber.d("权限检查 - WiFi状态权限: $wifiStateGranted")
+        Timber.d("权限检查 - 录音权限: $audioRecordGranted")
+        
+        // 检查和请求录音权限
+        if (!audioRecordGranted) {
+            Timber.w("警告: 录音权限未授予，正在请求录音权限")
+            requestAudioPermission()
+        }
         
         // 记录Android版本信息
         Timber.d("系统信息 - Android版本: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         Timber.d("系统信息 - 设备型号: ${Build.MODEL}")
         Timber.d("系统信息 - 制造商: ${Build.MANUFACTURER}")
         
-        // 如果权限不足，记录警告
-        if (!fineLocationGranted || !coarseLocationGranted) {
-            Timber.w("警告: 位置权限未完全授权，可能影响地图功能")
+        // 检查和请求通知权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val notificationGranted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            Timber.d("权限检查 - 通知权限: $notificationGranted")
+            
+            if (!notificationGranted) {
+                Timber.w("警告: 通知权限未授予，正在请求通知权限")
+                requestNotificationPermission()
+            }
         }
+        
+        // 记录权限状态，但不强制结束程序
+        if (!fineLocationGranted || !coarseLocationGranted) {
+            Timber.w("警告: 位置权限未完全授权，某些功能可能无法使用")
+        }
+    }
+    
+    /**
+     * 请求录音权限
+     */
+    private fun requestAudioPermission() {
+        try {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            Timber.d("已发送录音权限请求")
+        } catch (e: Exception) {
+            Timber.e(e, "请求录音权限失败")
+        }
+    }
+
+    /**
+     * 请求通知权限
+     */
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                Timber.d("已发送通知权限请求")
+            } catch (e: Exception) {
+                Timber.e(e, "请求通知权限失败")
+            }
+        }
+    }
+
+    /**
+     * 权限授予后测试通知功能
+     */
+    private fun testNotificationAfterPermissionGranted() {
+        // 延迟1秒后发送测试通知，确保权限状态已更新
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            try {
+                Timber.d("🧪 权限授予后开始测试通知功能")
+                notificationService.showTestNotification()
+            } catch (e: Exception) {
+                Timber.e(e, "权限授予后测试通知失败")
+            }
+        }, 1000)
     }
     
     override fun onDestroy() {
