@@ -15,26 +15,38 @@ class WhisperContext private constructor(private val contextPtr: Long) {
 
     companion object {
         /**
-         * 从资产文件创建 Whisper 上下文
+         * 从资产文件创建 Whisper 上下文（推荐方法，直接从assets加载）
          */
         fun createContextFromAsset(assetManager: AssetManager, modelPath: String): WhisperContext? {
             return try {
-                // 将模型文件从 assets 复制到临时文件
-                val tempFile = File.createTempFile("whisper_model_", ".bin")
-                tempFile.deleteOnExit()
-                
-                val inputStream = assetManager.open(modelPath)
-                val outputStream = FileOutputStream(tempFile)
-                
-                inputStream.use { input ->
-                    outputStream.use { output ->
-                        input.copyTo(output)
-                    }
+                val contextPtr = WhisperLib.initContextFromAsset(assetManager, modelPath)
+                if (contextPtr != 0L) {
+                    WhisperContext(contextPtr)
+                } else {
+                    Log.w("WhisperContext", "Direct asset loading failed, trying legacy method")
+                    // 如果直接加载失败，尝试传统方法
+                    createContextFromAssetLegacy(assetManager, modelPath)
                 }
-                
-                createContextFromFile(tempFile.absolutePath)
             } catch (e: Exception) {
                 Log.e("WhisperContext", "Failed to create context from asset: $modelPath", e)
+                // 尝试传统方法作为后备
+                createContextFromAssetLegacy(assetManager, modelPath)
+            }
+        }
+
+        /**
+         * 从资产文件创建 Whisper 上下文（传统方法，复制到临时文件）
+         */
+        private fun createContextFromAssetLegacy(assetManager: AssetManager, modelPath: String): WhisperContext? {
+            return try {
+                val contextPtr = WhisperLib.initContextFromAssetLegacy(assetManager, modelPath)
+                if (contextPtr != 0L) {
+                    WhisperContext(contextPtr)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e("WhisperContext", "Failed to create context from asset (legacy): $modelPath", e)
                 null
             }
         }
@@ -57,12 +69,12 @@ class WhisperContext private constructor(private val contextPtr: Long) {
         }
 
         /**
-         * 获取系统信息
+         * 获取 Whisper 系统信息
+         * @return 包含 CPU 信息、编译选项、支持的指令集等详细信息的字符串
          */
         fun getSystemInfo(): String {
             return try {
-                // 这里可以调用 JNI 方法获取系统信息
-                "Whisper System Info: Android ${android.os.Build.VERSION.RELEASE}"
+                WhisperLib.getSystemInfo()
             } catch (e: Exception) {
                 "Failed to get system info: ${e.message}"
             }
@@ -71,9 +83,18 @@ class WhisperContext private constructor(private val contextPtr: Long) {
 
     /**
      * 转录音频数据
-     * @param audioData 音频数据（FloatArray）
-     * @param translate 是否翻译（false 表示转录）
-     * @return 转录结果文本
+     * 
+     * ⚠️ 重要警告：此方法使用的是 fullTranscribe JNI 函数，该函数在 C++ 层硬编码语言为 "en"（英语），
+     * 因此无法正确识别中文语音。如果您需要识别中文，请参考以下解决方案：
+     * 
+     * 解决方案：
+     * 1. 修改 JNI 层的 fullTranscribe 函数，将 params.language 从 "en" 改为 "zh"
+     * 2. 或者添加一个新的带语言参数的 JNI 函数 fullTranscribeWithLanguage
+     * 3. 重新编译 JNI 库
+     * 
+     * @param audioData 音频数据（16kHz 单声道 FloatArray）
+     * @param translate 是否翻译（false 表示转录，true 表示翻译为英语）
+     * @return 转录结果文本（中文语音会被错误识别为英语）
      */
     fun transcribeData(audioData: FloatArray, translate: Boolean = false): String {
         if (isReleased) {
@@ -82,7 +103,8 @@ class WhisperContext private constructor(private val contextPtr: Long) {
 
         return try {
             // 使用 WhisperLib 进行转录
-            WhisperLib.fullTranscribe(contextPtr, 4, audioData)
+            // 注意：fullTranscribe 在 JNI 层硬编码语言为 "en"，这是中文识别问题的根源
+            WhisperLib.fullTranscribe(contextPtr=contextPtr, audioData=audioData)
             
             // 获取转录结果
             val segmentsCount = WhisperLib.getTextSegmentCount(contextPtr)

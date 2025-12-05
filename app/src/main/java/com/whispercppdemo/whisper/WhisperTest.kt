@@ -3,9 +3,13 @@ package com.whispercppdemo.whisper
 import android.content.Context
 import android.util.Log
 import com.whispercpp.whisper.WhisperLib
+import org.openapitools.client.apis.TaskControllerApi
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+
+import org.openapitools.client.infrastructure.*
+import org.openapitools.client.models.*
 
 object WhisperTest {
     private const val TAG = "WhisperTest"
@@ -36,7 +40,7 @@ object WhisperTest {
         // 1️⃣ 初始化 Whisper
         val modelPath = "samples/samples_jfk.wav" // 只是示例，你可以换成模型 bin 文件
         // 从 Asset 初始化模型
-        val whisperContext = WhisperLib.initContextFromAsset(context.assets, "models/ggml-small.en-q5_1.bin")
+        val whisperContext = WhisperLib.initContextFromAsset(context.assets, "models/ggml-small-q5_1.bin")
         if (whisperContext == 0L) {
             Log.e(TAG, "Failed to init Whisper context")
             return
@@ -47,7 +51,7 @@ object WhisperTest {
         Log.i(TAG, "Audio loaded, samples=${audioData.size}")
 
         // 3️⃣ 转录
-        WhisperLib.fullTranscribe(whisperContext, numThreads = 4, audioData = audioData)
+        WhisperLib.fullTranscribe(whisperContext, audioData = audioData)
 
         // 4️⃣ 获取结果
         val segmentsCount = WhisperLib.getTextSegmentCount(whisperContext)
@@ -62,5 +66,6 @@ object WhisperTest {
 
         // 5️⃣ 释放
         WhisperLib.freeContext(whisperContext)
+
     }
 }

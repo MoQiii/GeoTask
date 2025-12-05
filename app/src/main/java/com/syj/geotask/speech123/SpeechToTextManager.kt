@@ -18,7 +18,7 @@ class SpeechToTextManager(private val context: Context) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     companion object {
-        private const val MODEL_FILE_NAME = "models/ggml-small.en-q5_1.bin"
+        private const val MODEL_FILE_NAME = "models/ggml-base-q5_1.bin"
     }
     
     /**
@@ -31,12 +31,12 @@ class SpeechToTextManager(private val context: Context) {
                 return@withContext true
             }
             
-            // 尝试从assets加载模型
+            // 优先使用直接从assets加载的方法（更高效）
             whisperContext = try {
                 WhisperContext.createContextFromAsset(context.assets, MODEL_FILE_NAME)
             } catch (e: Exception) {
-                Log.w(TAG, "从assets加载模型失败: ${e.message}")
-                // 如果assets中没有，尝试从内部存储加载
+                Log.w(TAG, "从assets直接加载模型失败: ${e.message}")
+                // 如果直接加载失败，尝试从内部存储加载
                 val modelFile = File(context.filesDir, MODEL_FILE_NAME)
                 if (modelFile.exists()) {
                     WhisperContext.createContextFromFile(modelFile.absolutePath)

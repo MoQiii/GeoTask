@@ -25,4 +25,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "GeoTask"
 include(":app")
+include(":kotlin-client")
+project(":kotlin-client").projectDir = file("kotlin-client")
+
 //include(":lib")

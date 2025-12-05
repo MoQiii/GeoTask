@@ -41,6 +41,8 @@ import androidx.compose.runtime.LaunchedEffect
 import javax.inject.Inject
 import com.syj.geotask.data.service.NotificationService
 import com.syj.geotask.utils.AssetUtils
+import org.openapitools.client.apis.TaskControllerApi
+import org.openapitools.client.models.Task
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -78,10 +80,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        System.loadLibrary("whisper_jni")
-
-
-
 
         // 检查和记录权限状态
         checkAndLogPermissions()

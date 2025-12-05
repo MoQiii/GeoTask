@@ -89,6 +89,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":kotlin-client"))
 //    implementation(project(":lib"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
