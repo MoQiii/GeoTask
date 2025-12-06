@@ -8,7 +8,7 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 /.idea/*
-*.md
+
 .DS_Store
 /build
 /captures
@@ -19,3 +19,5 @@ local.properties
 *.so
 *.bin
 kotlin-client/build/*
+AndroidManifest.xml
+md/*.*

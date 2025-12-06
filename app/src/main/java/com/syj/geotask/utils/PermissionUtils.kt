@@ -85,12 +85,23 @@ object PermissionUtils {
     }
     
     /**
+     * 检查是否有录音权限
+     */
+    fun hasRecordAudioPermission(context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    
+    /**
      * 检查应用所需的所有关键权限
      */
     fun hasAllRequiredPermissions(context: Context): Boolean {
         return hasLocationPermission(context) &&
                hasNetworkPermission(context) &&
-               hasNotificationPermission(context)
+               hasNotificationPermission(context) &&
+               hasRecordAudioPermission(context)
     }
     
     /**
@@ -106,6 +117,10 @@ object PermissionUtils {
         if (!hasNetworkPermission(context)) {
             missingPermissions.add(Manifest.permission.INTERNET)
             missingPermissions.add(Manifest.permission.ACCESS_NETWORK_STATE)
+        }
+        
+        if (!hasRecordAudioPermission(context)) {
+            missingPermissions.add(Manifest.permission.RECORD_AUDIO)
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission(context)) {
@@ -135,7 +150,8 @@ object PermissionUtils {
             "后台位置权限" to hasBackgroundLocationPermission(context),
             "通知权限" to hasNotificationPermission(context),
             "网络权限" to hasNetworkPermission(context),
-            "存储权限" to hasStoragePermission(context)
+            "存储权限" to hasStoragePermission(context),
+            "录音权限" to hasRecordAudioPermission(context)
         )
     }
     
@@ -157,6 +173,9 @@ object PermissionUtils {
     fun getAllRequiredPermissions(): List<String> {
         val permissions = mutableListOf<String>()
         permissions.addAll(getMapPermissions())
+        
+        // 添加录音权限
+        permissions.add(Manifest.permission.RECORD_AUDIO)
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)

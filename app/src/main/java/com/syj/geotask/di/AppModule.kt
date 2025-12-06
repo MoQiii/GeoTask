@@ -16,12 +16,16 @@ import com.syj.geotask.domain.repository.UserRepository
 import com.syj.geotask.domain.usecase.*
 import com.syj.geotask.presentation.theme.ThemeManager
 import com.syj.geotask.speech.SpeechToTextManager
+import com.syj.geotask.speech.VoiceTaskManager
 import org.openapitools.client.apis.TaskControllerApi
+import org.openapitools.client.apis.AiControllerApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module  //表示下面存放依赖注入的配方
@@ -60,6 +64,19 @@ object AppModule {
     @Singleton
     fun provideTaskControllerApi(): TaskControllerApi {
         return TaskControllerApi()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAiControllerApi(): AiControllerApi {
+        // 创建带有15秒超时设置的OkHttpClient
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
+        
+        return AiControllerApi(client = okHttpClient)
     }
 
     @Provides
@@ -167,5 +184,15 @@ object AppModule {
     @Singleton
     fun provideSpeechToTextManager(@ApplicationContext context: Context): SpeechToTextManager {
         return SpeechToTextManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVoiceTaskManager(
+        @ApplicationContext context: Context,
+        speechToTextManager: SpeechToTextManager,
+        aiControllerApi: AiControllerApi
+    ): VoiceTaskManager {
+        return VoiceTaskManager(context, speechToTextManager, aiControllerApi)
     }
 }

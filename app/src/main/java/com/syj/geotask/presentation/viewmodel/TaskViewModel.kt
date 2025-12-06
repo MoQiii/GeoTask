@@ -1,4 +1,4 @@
-    package com.syj.geotask.presentation.viewmodel
+package com.syj.geotask.presentation.viewmodel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +13,7 @@ import com.syj.geotask.domain.usecase.DeleteTaskWithGeofenceUseCase
 import com.syj.geotask.domain.usecase.GetTasksUseCase
 import com.syj.geotask.domain.usecase.UpdateTaskUseCase
 import com.syj.geotask.domain.usecase.UpdateTaskWithGeofenceUseCase
+import com.syj.geotask.speech.VoiceTaskManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +32,8 @@ class TaskViewModel @Inject constructor(
     private val updateTaskWithGeofenceUseCase: UpdateTaskWithGeofenceUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
     private val deleteTaskWithGeofenceUseCase: DeleteTaskWithGeofenceUseCase,
-    private val taskReminderManager: com.syj.geotask.data.service.TaskReminderManager
+    private val taskReminderManager: com.syj.geotask.data.service.TaskReminderManager,
+    private val voiceTaskManager: VoiceTaskManager
 ) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
@@ -45,6 +47,11 @@ class TaskViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // 语音任务状态 - 直接暴露 VoiceTaskManager 的 StateFlow
+    val isVoiceRecording: StateFlow<Boolean> = voiceTaskManager.isRecording
+    val isVoiceProcessing: StateFlow<Boolean> = voiceTaskManager.isProcessing
+    val voiceErrorMessage: StateFlow<String?> = voiceTaskManager.errorMessage
 
     // 添加任务表单状态
     var taskTitle by mutableStateOf("")
@@ -74,6 +81,27 @@ class TaskViewModel @Inject constructor(
     init {
         // 初始加载任务
         loadTasks()
+        
+        // 初始化语音任务管理器
+        initializeVoiceTaskManager()
+    }
+
+    /**
+     * 初始化语音任务管理器
+     */
+    private fun initializeVoiceTaskManager() {
+        viewModelScope.launch {
+            try {
+                val initialized = voiceTaskManager.initialize()
+                if (initialized) {
+                    Timber.d("✅ 语音任务管理器初始化成功")
+                } else {
+                    Timber.e("❌ 语音任务管理器初始化失败")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "❌ 初始化语音任务管理器时发生错误")
+            }
+        }
     }
 
     private fun loadTasks() {
@@ -123,6 +151,72 @@ class TaskViewModel @Inject constructor(
     fun onFilterTypeChanged(filterType: FilterType) {
         this.filterType = filterType
         loadTasks()
+    }
+
+    /**
+     * 开始语音录音
+     */
+    suspend fun startVoiceRecording(): Boolean {
+        Timber.d("🎤 TaskViewModel.startVoiceRecording() 被调用")
+        return try {
+            voiceTaskManager.clearError()
+            Timber.d("🎤 清除错误状态完成，开始调用 voiceTaskManager.startRecording()")
+            val success = voiceTaskManager.startRecording()
+            if (success) {
+                Timber.d("✅ 开始语音录音成功")
+            } else {
+                Timber.e("❌ 开始语音录音失败")
+            }
+            success
+        } catch (e: Exception) {
+            Timber.e(e, "❌ 开始语音录音时发生错误")
+            false
+        }
+    }
+
+    /**
+     * 停止语音录音并处理
+     */
+    suspend fun stopVoiceRecordingAndProcess(
+        onSuccess: (String) -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        try {
+            voiceTaskManager.stopRecordingAndProcess(
+                onSuccess = { recognizedText ->
+                    Timber.d("✅ 语音任务创建成功: $recognizedText")
+                    // 重新加载任务列表以显示新创建的任务
+                    loadTasks()
+                    onSuccess(recognizedText)
+                },
+                onError = { errorMsg ->
+                    Timber.e("❌ 语音任务创建失败: $errorMsg")
+                    onError(errorMsg)
+                }
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "❌ 停止语音录音时发生错误")
+            onError("处理语音录音失败: ${e.message}")
+        }
+    }
+
+    /**
+     * 取消语音录音
+     */
+    suspend fun cancelVoiceRecording() {
+        try {
+            voiceTaskManager.cancelRecording()
+            Timber.d("🛑 已取消语音录音")
+        } catch (e: Exception) {
+            Timber.e(e, "❌ 取消语音录音时发生错误")
+        }
+    }
+
+    /**
+     * 清除语音错误消息
+     */
+    fun clearVoiceError() {
+        voiceTaskManager.clearError()
     }
 
     fun addTask(task: Task) {
@@ -414,6 +508,13 @@ class TaskViewModel @Inject constructor(
         } else {
             false // 标题为空，保存失败
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // 释放语音任务管理器资源
+        voiceTaskManager.release()
+        Timber.d("🧹 TaskViewModel已清理，语音任务管理器资源已释放")
     }
 }
 

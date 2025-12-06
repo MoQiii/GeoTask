@@ -84,17 +84,11 @@ class WhisperContext private constructor(private val contextPtr: Long) {
     /**
      * 转录音频数据
      * 
-     * ⚠️ 重要警告：此方法使用的是 fullTranscribe JNI 函数，该函数在 C++ 层硬编码语言为 "en"（英语），
-     * 因此无法正确识别中文语音。如果您需要识别中文，请参考以下解决方案：
-     * 
-     * 解决方案：
-     * 1. 修改 JNI 层的 fullTranscribe 函数，将 params.language 从 "en" 改为 "zh"
-     * 2. 或者添加一个新的带语言参数的 JNI 函数 fullTranscribeWithLanguage
-     * 3. 重新编译 JNI 库
+     * ✅ 修复说明：此方法现在使用正确的中文语言参数进行转录
      * 
      * @param audioData 音频数据（16kHz 单声道 FloatArray）
      * @param translate 是否翻译（false 表示转录，true 表示翻译为英语）
-     * @return 转录结果文本（中文语音会被错误识别为英语）
+     * @return 转录结果文本（现在可以正确识别中文语音）
      */
     fun transcribeData(audioData: FloatArray, translate: Boolean = false): String {
         if (isReleased) {
@@ -102,16 +96,31 @@ class WhisperContext private constructor(private val contextPtr: Long) {
         }
 
         return try {
-            // 使用 WhisperLib 进行转录
-            // 注意：fullTranscribe 在 JNI 层硬编码语言为 "en"，这是中文识别问题的根源
-            WhisperLib.fullTranscribe(contextPtr=contextPtr, audioData=audioData)
+            // 使用 WhisperLib 进行转录，设置正确的中文语言参数
+            val params = WhisperLib.TranscribeParams(
+                printRealtime = false,
+                printProgress = false,
+                printTimestamps = false,
+                printSpecial = false,
+                translate = translate,
+                language = "zh", // 设置为中文
+                nThreads = 4,
+                offsetMs = 0,
+                noContext = true,
+                singleSegment = false
+            )
+            
+            Log.d(TAG, "开始转录，语言设置: ${params.language}")
+            WhisperLib.fullTranscribe(contextPtr = contextPtr, params = params, audioData = audioData)
             
             // 获取转录结果
             val segmentsCount = WhisperLib.getTextSegmentCount(contextPtr)
+            Log.d(TAG, "转录段数量: $segmentsCount")
             val result = StringBuilder()
             
             for (i in 0 until segmentsCount) {
                 val text = WhisperLib.getTextSegment(contextPtr, i)
+                Log.d(TAG, "转录段 $i: $text")
                 if (text.isNotEmpty()) {
                     if (result.isNotEmpty()) {
                         result.append(" ")
@@ -120,7 +129,9 @@ class WhisperContext private constructor(private val contextPtr: Long) {
                 }
             }
             
-            result.toString()
+            val finalResult = result.toString()
+            Log.d(TAG, "最终转录结果: $finalResult")
+            finalResult
         } catch (e: Exception) {
             Log.e(TAG, "Transcription failed", e)
             "Transcription failed: ${e.message}"
