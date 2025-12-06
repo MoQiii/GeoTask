@@ -2,4 +2,12 @@
 <resources>
 
     <style name="Theme.GeoTask" parent="android:Theme.Material.Light.NoActionBar" />
+    
+    <!-- 启动画面主题 -->
+    <style name="Theme.GeoTask.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
+        <item name="postSplashScreenTheme">@style/Theme.GeoTask</item>
+    </style>
 </resources>

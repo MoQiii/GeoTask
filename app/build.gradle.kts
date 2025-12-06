@@ -135,6 +135,9 @@ dependencies {
 
     // Permissions
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    
+    // Splash Screen API
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
