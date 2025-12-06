@@ -41,6 +41,8 @@ fun EditTaskScreen(
     var selectedLocation by remember { mutableStateOf<String?>(null) }
     var selectedLatitude by remember { mutableStateOf<Double?>(null) }
     var selectedLongitude by remember { mutableStateOf<Double?>(null) }
+    var geofenceRadius by remember { mutableStateOf(200f) }
+    var radiusText by remember { mutableStateOf("") }
     
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -79,6 +81,7 @@ fun EditTaskScreen(
             selectedLocation = it.location
             selectedLatitude = it.latitude
             selectedLongitude = it.longitude
+            geofenceRadius = it.geofenceRadius
         }
         isLoading = false
     }
@@ -229,6 +232,30 @@ fun EditTaskScreen(
                     }
                 }
 
+                // Geofence Radius Input
+                LaunchedEffect(task) {
+                    task?.let {
+                        radiusText = it.geofenceRadius.toString()
+                    }
+                }
+                
+                OutlinedTextField(
+                    value = radiusText,
+                    onValueChange = { 
+                        radiusText = it
+                        val radius = it.toFloatOrNull()
+                        if (it.isEmpty()) {
+                            geofenceRadius = 200f // 默认值
+                        } else if (radius != null && radius > 0) {
+                            geofenceRadius = radius
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("地理围栏半径 (米)") },
+                    placeholder = { Text("默认: 200米") },
+                    singleLine = true
+                )
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Save Button
@@ -243,7 +270,8 @@ fun EditTaskScreen(
                                 isReminderEnabled = isReminderEnabled,
                                 location = selectedLocation,
                                 latitude = selectedLatitude,
-                                longitude = selectedLongitude
+                                longitude = selectedLongitude,
+                                geofenceRadius = geofenceRadius
                             )
                             viewModel.updateTask(updatedTask)
                             onNavigateBack()

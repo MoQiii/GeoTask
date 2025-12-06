@@ -63,13 +63,13 @@ class TaskRepositoryImpl @Inject constructor(
 //    override fun getAllTasks(): Flow<List<Task>> {
 //        return flow {
 //            try {
-//                Timber.d("🔄 开始从远程API获取所有任务")
+//                Timber.d("开始从远程API获取所有任务")
 //                val tasks = withContext(Dispatchers.IO) {
 //                    taskControllerApi.getAllTasks()
 //                }
-//                Timber.d("📋 API返回了 ${tasks.size} 个任务")
+//                Timber.d("API返回了 ${tasks.size} 个任务")
 //                val domainTasks = tasks.map { it.toDomainTask() }
-//                Timber.d("🔄 转换后的任务列表: ${domainTasks.map { "${it.id}:${it.title}" }}")
+//                Timber.d("转换后的任务列表: ${domainTasks.map { "${it.id}:${it.title}" }}")
 //                emit(domainTasks)
 //                Timber.d("已发送任务列表到Flow")
 //            } catch (e: Exception) {
@@ -80,16 +80,16 @@ class TaskRepositoryImpl @Inject constructor(
 //    }
     override fun getAllTasks(): Flow<List<Task>> {
         return flow {
-            Timber.d("🔄 开始从远程API获取所有任务")
+            Timber.d("开始从远程API获取所有任务")
 
             val tasks = withContext(Dispatchers.IO) {
                 taskControllerApi.getAllTasks()
             }
 
-            Timber.d("📋 API返回了 ${tasks.size} 个任务")
+            Timber.d("API返回了 ${tasks.size} 个任务")
 
             val domainTasks = tasks.map { it.toDomainTask() }
-            Timber.d("🔄 转换后的任务列表: ${domainTasks.map { "${it.id}:${it.title}" }}")
+            Timber.d("转换后的任务列表: ${domainTasks.map { "${it.id}:${it.title}" }}")
 
             emit(domainTasks)
             Timber.d("已发送任务列表到Flow")

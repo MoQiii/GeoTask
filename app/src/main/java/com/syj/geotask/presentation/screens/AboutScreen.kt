@@ -70,11 +70,11 @@ fun AboutScreen(
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "版本: 1.0.0",
+                        text = "版本: 0.1",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "构建: 2024.01",
+                        text = "构建: 2025.12",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -159,7 +159,7 @@ fun AboutScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "© 2024 GeoTask\n一个展示Android开发技能的项目",
+                text = "© 2025 GeoTask\n一个展示Android开发技能的项目",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center

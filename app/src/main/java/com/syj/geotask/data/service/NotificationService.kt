@@ -94,7 +94,7 @@ class NotificationService @Inject constructor(private val context: Context) {
         taskLongitude: Double?,
         geofenceRadius: Float
     ) {
-        Timber.d("🔔 准备显示任务提醒通知: taskId=$taskId, title=$taskTitle")
+        Timber.d("准备显示任务提醒通知: taskId=$taskId, title=$taskTitle")
         
         // 检查通知权限
         if (!PermissionUtils.hasNotificationPermission(context)) {

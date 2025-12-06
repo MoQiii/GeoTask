@@ -77,6 +77,9 @@ class TaskViewModel @Inject constructor(
     
     var selectedLongitude by mutableStateOf<Double?>(null)
         private set
+    
+    var geofenceRadius by mutableStateOf(200f)
+        private set
 
     init {
         // 初始加载任务
@@ -108,7 +111,7 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                Timber.d("🔄 ViewModel开始加载任务")
+                Timber.d("ViewModel开始加载任务")
                 Timber.d("  过滤类型: $filterType")
                 Timber.d("  搜索查询: '$searchQuery'")
                 
@@ -127,7 +130,7 @@ class TaskViewModel @Inject constructor(
                 
                 Timber.d("📡 开始从Flow收集数据")
                 finalFlow.collect { tasks ->
-                    Timber.d("📋 ViewModel收到任务列表: ${tasks.size} 个任务")
+                    Timber.d("ViewModel收到任务列表: ${tasks.size} 个任务")
                     Timber.d("  任务详情: ${tasks.map { "${it.id}:${it.title}" }}")
                     _tasks.value = tasks
                     _isLoading.value = false
@@ -309,7 +312,7 @@ class TaskViewModel @Inject constructor(
             val currentTasks = _tasks.value.toMutableList()
             currentTasks.removeAll { it.id == task.id }
             _tasks.value = currentTasks
-            Timber.d("🔄 已更新本地任务列表，当前任务数量: ${currentTasks.size}")
+            Timber.d("已更新本地任务列表，当前任务数量: ${currentTasks.size}")
             
             true // 删除成功
         } catch (e: Exception) {
@@ -416,6 +419,10 @@ class TaskViewModel @Inject constructor(
         selectedLongitude = longitude
     }
 
+    fun updateGeofenceRadius(radius: Float) {
+        geofenceRadius = radius
+    }
+
     // 清空表单状态
     fun clearTaskForm() {
         taskTitle = ""
@@ -426,12 +433,13 @@ class TaskViewModel @Inject constructor(
         selectedLocation = null
         selectedLatitude = null
         selectedLongitude = null
+        geofenceRadius = 200f
     }
 
     // 创建并保存任务
     suspend fun saveTask(): Boolean {
         return if (taskTitle.isNotBlank()) {
-            Timber.d("💾 开始保存任务:")
+            Timber.d("开始保存任务:")
             Timber.d("  标题: $taskTitle")
             Timber.d("  描述: $taskDescription")
             Timber.d("  日期: ${selectedDate}")
@@ -449,10 +457,11 @@ class TaskViewModel @Inject constructor(
                 isReminderEnabled = isReminderEnabled,
                 location = selectedLocation,
                 latitude = selectedLatitude,
-                longitude = selectedLongitude
+                longitude = selectedLongitude,
+                geofenceRadius = geofenceRadius
             )
             
-            Timber.d("📋 创建的任务对象:")
+            Timber.d("创建的任务对象:")
             Timber.d("  title: ${task.title}")
             Timber.d("  description: ${task.description}")
             Timber.d("  dueDate: ${task.dueDate}")
@@ -480,11 +489,11 @@ class TaskViewModel @Inject constructor(
                 val currentTasks = _tasks.value.toMutableList()
                 currentTasks.add(newTask)
                 _tasks.value = currentTasks
-                Timber.d("🔄 已更新本地任务列表，当前任务数量: ${currentTasks.size}")
+                Timber.d("已更新本地任务列表，当前任务数量: ${currentTasks.size}")
                 
                 // 如果启用了提醒，调度精确提醒
                 if (task.isReminderEnabled) {
-                    Timber.d("🔔 开始调度任务提醒: taskId=$taskId, title=${task.title}")
+                    Timber.d("开始调度任务提醒: taskId=$taskId, title=${task.title}")
                     taskReminderManager.scheduleTaskReminderForTime(
                         taskId = taskId,
                         dueDate = task.dueDate,
@@ -492,7 +501,7 @@ class TaskViewModel @Inject constructor(
                     )
                     Timber.d("任务提醒调度完成: ${task.title}")
                 } else {
-                    Timber.d("⏸️ 任务未启用提醒: ${task.title}")
+                    Timber.d("任务未启用提醒: ${task.title}")
                 }
                 
                 // 保存后清空表单
@@ -514,7 +523,7 @@ class TaskViewModel @Inject constructor(
         super.onCleared()
         // 释放语音任务管理器资源
         voiceTaskManager.release()
-        Timber.d("🧹 TaskViewModel已清理，语音任务管理器资源已释放")
+        Timber.d("TaskViewModel已清理，语音任务管理器资源已释放")
     }
 }
 

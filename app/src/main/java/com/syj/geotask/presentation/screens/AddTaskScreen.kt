@@ -41,6 +41,7 @@ fun AddTaskScreen(
     val selectedLocation = viewModel.selectedLocation
     val selectedLatitude = viewModel.selectedLatitude
     val selectedLongitude = viewModel.selectedLongitude
+    val geofenceRadius = viewModel.geofenceRadius
     
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -193,6 +194,30 @@ fun AddTaskScreen(
                     Text("选择地点")
                 }
             }
+
+            // Geofence Radius Input
+            var radiusText by remember { mutableStateOf("") }
+            
+            LaunchedEffect(geofenceRadius) {
+                radiusText = if (geofenceRadius == 200f) "" else geofenceRadius.toString()
+            }
+            
+            OutlinedTextField(
+                value = radiusText,
+                onValueChange = { 
+                    radiusText = it
+                    val radius = it.toFloatOrNull()
+                    if (it.isEmpty()) {
+                        viewModel.updateGeofenceRadius(200f) // 默认值
+                    } else if (radius != null && radius > 0) {
+                        viewModel.updateGeofenceRadius(radius)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("地理围栏半径 (米)") },
+                placeholder = { Text("默认: 200米") },
+                singleLine = true
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
