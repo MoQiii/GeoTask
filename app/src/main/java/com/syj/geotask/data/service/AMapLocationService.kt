@@ -64,9 +64,9 @@ class AMapLocationService(private val context: Context) {
                 setLocationOption(locationOption)
             }
             
-            Timber.d("✅ 高德定位客户端初始化成功")
+            Timber.d("高德定位客户端初始化成功")
         } catch (e: Exception) {
-            Timber.e(e, "❌ 高德定位客户端初始化失败")
+            Timber.e(e, "高德定位客户端初始化失败")
             throw e
         }
     }
@@ -79,13 +79,13 @@ class AMapLocationService(private val context: Context) {
         return try {
             // 检查位置权限
             if (!PermissionUtils.hasLocationPermission(context)) {
-                Timber.w("❌ 位置权限未授予，无法获取位置")
+                Timber.w("位置权限未授予，无法获取位置")
                 return null
             }
 
             // 检查定位客户端是否可用
             if (locationClient == null) {
-                Timber.e("❌ 定位客户端未初始化")
+                Timber.e("定位客户端未初始化")
                 return null
             }
 
@@ -107,8 +107,8 @@ class AMapLocationService(private val context: Context) {
                                 if (amapLocation.errorCode == 0) {
                                     // 定位成功
                                     val location = convertToAndroidLocation(amapLocation)
-                                    Timber.d("✅ 高德定位成功: lat=${location.latitude}, lng=${location.longitude}, accuracy=${location.accuracy}m")
-                                    Timber.d("✅ 定位地址: ${amapLocation.address}")
+                                    Timber.d("高德定位成功: lat=${location.latitude}, lng=${location.longitude}, accuracy=${location.accuracy}m")
+                                    Timber.d("定位地址: ${amapLocation.address}")
                                     continuation.resume(location)
                                 } else {
                                     // 定位失败
@@ -117,22 +117,22 @@ class AMapLocationService(private val context: Context) {
                                     
                                     // 根据错误码提供更详细的信息
                                     when (amapLocation.errorCode) {
-                                        1 -> Timber.e("❌ 定位失败原因: 权限不足")
-                                        2 -> Timber.e("❌ 定位失败原因: 网络异常")
-                                        3 -> Timber.e("❌ 定位失败原因: 定位服务未开启")
-                                        4 -> Timber.e("❌ 定位失败原因: 定位模式错误")
-                                        5 -> Timber.e("❌ 定位失败原因: 设备不支持定位")
-                                        else -> Timber.e("❌ 定位失败原因: 未知错误")
+                                        1 -> Timber.e("定位失败原因: 权限不足")
+                                        2 -> Timber.e("定位失败原因: 网络异常")
+                                        3 -> Timber.e("定位失败原因: 定位服务未开启")
+                                        4 -> Timber.e("定位失败原因: 定位模式错误")
+                                        5 -> Timber.e("定位失败原因: 设备不支持定位")
+                                        else -> Timber.e("定位失败原因: 未知错误")
                                     }
                                     
                                     continuation.resume(null)
                                 }
                             } else {
-                                Timber.e("❌ 高德定位返回null")
+                                Timber.e("高德定位返回null")
                                 continuation.resume(null)
                             }
                         } catch (e: Exception) {
-                            Timber.e(e, "❌ 处理高德定位结果时发生异常")
+                            Timber.e(e, "处理高德定位结果时发生异常")
                             continuation.resumeWithException(e)
                         } finally {
                             // 停止定位
@@ -140,7 +140,7 @@ class AMapLocationService(private val context: Context) {
                                 locationClient?.stopLocation()
                                 Timber.d("📍 定位已停止")
                             } catch (e: Exception) {
-                                Timber.e(e, "❌ 停止定位时发生异常")
+                                Timber.e(e, "停止定位时发生异常")
                             }
                         }
                     }
@@ -162,16 +162,16 @@ class AMapLocationService(private val context: Context) {
                             locationClient?.stopLocation()
                             locationClient?.unRegisterLocationListener(locationListener)
                         } catch (e: Exception) {
-                            Timber.e(e, "❌ 取消定位时发生异常")
+                            Timber.e(e, "取消定位时发生异常")
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "❌ 启动定位时发生异常")
+                    Timber.e(e, "启动定位时发生异常")
                     continuation.resume(null)
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "❌ 获取高德定位时发生异常")
+            Timber.e(e, "获取高德定位时发生异常")
             null
         }
     }
@@ -222,13 +222,13 @@ class AMapLocationService(private val context: Context) {
         return try {
             // 检查位置权限
             if (!PermissionUtils.hasLocationPermission(context)) {
-                Timber.w("❌ 位置权限未授予，无法获取位置")
+                Timber.w("位置权限未授予，无法获取位置")
                 return Pair(null, null)
             }
 
             // 检查定位客户端是否可用
             if (locationClient == null) {
-                Timber.e("❌ 定位客户端未初始化")
+                Timber.e("定位客户端未初始化")
                 return Pair(null, null)
             }
 
@@ -251,8 +251,8 @@ class AMapLocationService(private val context: Context) {
                                     val location = convertToAndroidLocation(amapLocation)
                                     val address = amapLocation.address
                                     
-                                    Timber.d("✅ 高德定位成功: lat=${location.latitude}, lng=${location.longitude}, accuracy=${location.accuracy}m")
-                                    Timber.d("✅ 定位地址: $address")
+                                    Timber.d("高德定位成功: lat=${location.latitude}, lng=${location.longitude}, accuracy=${location.accuracy}m")
+                                    Timber.d("定位地址: $address")
                                     
                                     continuation.resume(Pair(location, address))
                                 } else {
@@ -262,22 +262,22 @@ class AMapLocationService(private val context: Context) {
                                     
                                     // 根据错误码提供更详细的信息
                                     when (amapLocation.errorCode) {
-                                        1 -> Timber.e("❌ 定位失败原因: 权限不足")
-                                        2 -> Timber.e("❌ 定位失败原因: 网络异常")
-                                        3 -> Timber.e("❌ 定位失败原因: 定位服务未开启")
-                                        4 -> Timber.e("❌ 定位失败原因: 定位模式错误")
-                                        5 -> Timber.e("❌ 定位失败原因: 设备不支持定位")
-                                        else -> Timber.e("❌ 定位失败原因: 未知错误")
+                                        1 -> Timber.e("定位失败原因: 权限不足")
+                                        2 -> Timber.e("定位失败原因: 网络异常")
+                                        3 -> Timber.e("定位失败原因: 定位服务未开启")
+                                        4 -> Timber.e("定位失败原因: 定位模式错误")
+                                        5 -> Timber.e("定位失败原因: 设备不支持定位")
+                                        else -> Timber.e("定位失败原因: 未知错误")
                                     }
                                     
                                     continuation.resume(Pair(null, null))
                                 }
                             } else {
-                                Timber.e("❌ 高德定位返回null")
+                                Timber.e("高德定位返回null")
                                 continuation.resume(Pair(null, null))
                             }
                         } catch (e: Exception) {
-                            Timber.e(e, "❌ 处理高德定位结果时发生异常")
+                            Timber.e(e, "处理高德定位结果时发生异常")
                             continuation.resumeWithException(e)
                         } finally {
                             // 停止定位
@@ -285,7 +285,7 @@ class AMapLocationService(private val context: Context) {
                                 locationClient?.stopLocation()
                                 Timber.d("📍 定位已停止")
                             } catch (e: Exception) {
-                                Timber.e(e, "❌ 停止定位时发生异常")
+                                Timber.e(e, "停止定位时发生异常")
                             }
                         }
                     }
@@ -307,16 +307,16 @@ class AMapLocationService(private val context: Context) {
                             locationClient?.stopLocation()
                             locationClient?.unRegisterLocationListener(locationListener)
                         } catch (e: Exception) {
-                            Timber.e(e, "❌ 取消定位时发生异常")
+                            Timber.e(e, "取消定位时发生异常")
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "❌ 启动定位时发生异常")
+                    Timber.e(e, "启动定位时发生异常")
                     continuation.resume(Pair(null, null))
                 }
             }
         } catch (e: Exception) {
-            Timber.e(e, "❌ 获取高德定位时发生异常")
+            Timber.e(e, "获取高德定位时发生异常")
             Pair(null, null)
         }
     }
@@ -330,14 +330,14 @@ class AMapLocationService(private val context: Context) {
             val amapLocation = locationClient?.lastKnownLocation
             if (amapLocation != null && amapLocation.errorCode == 0) {
                 val location = convertToAndroidLocation(amapLocation)
-                Timber.d("✅ 获取高德缓存位置成功: lat=${location.latitude}, lng=${location.longitude}")
+                Timber.d("获取高德缓存位置成功: lat=${location.latitude}, lng=${location.longitude}")
                 location
             } else {
-                Timber.d("⚠️ 没有高德缓存位置")
+                Timber.d("没有高德缓存位置")
                 null
             }
         } catch (e: Exception) {
-            Timber.e(e, "❌ 获取高德缓存位置时发生异常")
+            Timber.e(e, "获取高德缓存位置时发生异常")
             null
         }
     }
@@ -351,9 +351,9 @@ class AMapLocationService(private val context: Context) {
             locationClient?.onDestroy()
             locationClient = null
             locationOption = null
-            Timber.d("✅ 高德定位服务已销毁")
+            Timber.d("高德定位服务已销毁")
         } catch (e: Exception) {
-            Timber.e(e, "❌ 销毁高德定位服务时发生异常")
+            Timber.e(e, "销毁高德定位服务时发生异常")
         }
     }
 
@@ -364,7 +364,7 @@ class AMapLocationService(private val context: Context) {
         return try {
             locationClient != null && locationOption != null
         } catch (e: Exception) {
-            Timber.e(e, "❌ 检查高德定位服务可用性时发生异常")
+            Timber.e(e, "检查高德定位服务可用性时发生异常")
             false
         }
     }

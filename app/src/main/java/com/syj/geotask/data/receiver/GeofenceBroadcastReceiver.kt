@@ -149,9 +149,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                             location = taskLocation
                         )
                     }
-                    Timber.d("✅ 位置验证通过，发送通知: taskId=$taskId, 距离=${distance}m")
+                    Timber.d("位置验证通过，发送通知: taskId=$taskId, 距离=${distance}m")
                 } else {
-                    Timber.w("❌ 位置验证失败，距离过远不发送通知: taskId=$taskId, 距离=${distance}m, 半径=${geofenceRadius}m")
+                    Timber.w("位置验证失败，距离过远不发送通知: taskId=$taskId, 距离=${distance}m, 半径=${geofenceRadius}m")
                 }
                 
             } catch (e: Exception) {
@@ -205,9 +205,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                             location = taskLocation
                         )
                     }
-                    Timber.d("✅ 位置验证通过，发送通知: taskId=$taskId, 距离=${distance}m")
+                    Timber.d("位置验证通过，发送通知: taskId=$taskId, 距离=${distance}m")
                 } else {
-                    Timber.w("❌ 位置验证失败，距离过远不发送通知: taskId=$taskId, 距离=${distance}m, 半径=${geofenceRadius}m")
+                    Timber.w("位置验证失败，距离过远不发送通知: taskId=$taskId, 距离=${distance}m, 半径=${geofenceRadius}m")
                 }
                 
             } catch (e: Exception) {

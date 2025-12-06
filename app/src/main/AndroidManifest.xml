@@ -73,7 +73,7 @@
         <!-- 开发阶段使用测试密钥，发布时请替换为正式密钥 -->
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="c5246ec1319a09e249ddf141fcc63447" />
+            android:value="77bf8762304047133f12416c715e2960" />
             
         <!-- 高德地图定位服务 - 根据官方文档配置 -->
         <service android:name="com.amap.api.location.APSService" />

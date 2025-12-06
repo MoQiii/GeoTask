@@ -71,9 +71,9 @@ class TaskRepositoryImpl @Inject constructor(
 //                val domainTasks = tasks.map { it.toDomainTask() }
 //                Timber.d("🔄 转换后的任务列表: ${domainTasks.map { "${it.id}:${it.title}" }}")
 //                emit(domainTasks)
-//                Timber.d("✅ 已发送任务列表到Flow")
+//                Timber.d("已发送任务列表到Flow")
 //            } catch (e: Exception) {
-//                Timber.e(e, "❌ 获取任务列表失败")
+//                Timber.e(e, "获取任务列表失败")
 //                emit(emptyList())
 //            }
 //        }
@@ -92,9 +92,9 @@ class TaskRepositoryImpl @Inject constructor(
             Timber.d("🔄 转换后的任务列表: ${domainTasks.map { "${it.id}:${it.title}" }}")
 
             emit(domainTasks)
-            Timber.d("✅ 已发送任务列表到Flow")
+            Timber.d("已发送任务列表到Flow")
         }.catch { e ->
-            Timber.e(e, "❌ 获取任务列表失败")
+            Timber.e(e, "获取任务列表失败")
             emit(emptyList())    // ✔️ 这里是被允许的，不会再报 Flow 异常
         }
     }

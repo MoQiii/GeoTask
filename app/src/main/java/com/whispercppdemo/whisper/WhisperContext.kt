@@ -84,7 +84,7 @@ class WhisperContext private constructor(private val contextPtr: Long) {
     /**
      * 转录音频数据
      * 
-     * ✅ 修复说明：此方法现在使用正确的中文语言参数进行转录
+     * 修复说明：此方法现在使用正确的中文语言参数进行转录
      * 
      * @param audioData 音频数据（16kHz 单声道 FloatArray）
      * @param translate 是否翻译（false 表示转录，true 表示翻译为英语）

@@ -117,7 +117,7 @@ class AMapProvider : MapProvider {
                 try {
                     // 确保权限已授予
                     if (!PermissionUtils.hasLocationPermission(context)) {
-                        Timber.w("❌ 位置权限未授予，等待权限申请...")
+                        Timber.w("位置权限未授予，等待权限申请...")
                         selectedAddress = "等待位置权限授权..."
                         isGettingInitialLocation = false
                         isLoading = false
@@ -136,7 +136,7 @@ class AMapProvider : MapProvider {
                     if (location != null) {
                         currentLat = location.latitude
                         currentLng = location.longitude
-                        Timber.d("✅ 获取当前位置成功: lat=${location.latitude}, lng=${location.longitude}")
+                        Timber.d("获取当前位置成功: lat=${location.latitude}, lng=${location.longitude}")
                         
                         // 更新地图中心位置
                         aMap?.let { map ->
@@ -149,18 +149,18 @@ class AMapProvider : MapProvider {
                         if (!address.isNullOrEmpty()) {
                             selectedAddress = address
                             isLoading = false
-                            Timber.d("✅ 地址更新完成（来自定位服务）: $address")
+                            Timber.d("地址更新完成（来自定位服务）: $address")
                         } else {
                             // 如果定位服务没有返回地址，则进行反向地理编码
                             selectedAddress = "正在获取地址信息..."
                             reverseGeocode(location.latitude, location.longitude) { address ->
                                 selectedAddress = address
                                 isLoading = false
-                                Timber.d("✅ 地址更新完成（来自反向地理编码）: $address")
+                                Timber.d("地址更新完成（来自反向地理编码）: $address")
                             }
                         }
                     } else {
-                        Timber.w("⚠️ 无法获取当前位置，继续重试")
+                        Timber.w("无法获取当前位置，继续重试")
                         // 继续尝试获取当前位置，不使用硬编码位置
                         selectedAddress = "正在重试获取当前位置..."
                         // 重置标志位，允许下次继续尝试
@@ -176,7 +176,7 @@ class AMapProvider : MapProvider {
                     isGettingInitialLocation = false
                     isLoading = false // 重要：重置加载状态
                 } catch (e: Exception) {
-                    Timber.e(e, "❌ 获取当前位置异常")
+                    Timber.e(e, "获取当前位置异常")
                     // 位置服务异常，继续重试而不使用硬编码位置
                     selectedAddress = "位置服务异常，正在重试..."
                     // 重置标志位，允许下次继续尝试

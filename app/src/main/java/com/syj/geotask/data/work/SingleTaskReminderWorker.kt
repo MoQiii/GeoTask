@@ -25,11 +25,11 @@ class SingleTaskReminderWorker @AssistedInject constructor(
         return try {
             val taskId = inputData.getLong(TASK_ID_KEY, -1L)
             if (taskId == -1L) {
-                Timber.e("❌ SingleTaskReminderWorker: 无效的任务ID")
+                Timber.e("SingleTaskReminderWorker: 无效的任务ID")
                 return Result.failure()
             }
 
-            Timber.d("🚀 SingleTaskReminderWorker开始处理任务 $taskId 的提醒")
+            Timber.d("SingleTaskReminderWorker开始处理任务 $taskId 的提醒")
             Timber.d("当前时间: ${Date()}")
 
             // 获取指定任务

@@ -18,10 +18,10 @@ class GeofenceManagerFactory(private val context: Context) {
     fun getGeofenceManager(): IGeofenceManager {
         return try {
             val aMapManager = AMapGeofenceManager(context)
-            Timber.d("✅ 使用高德地图地理围栏服务")
+            Timber.d("使用高德地图地理围栏服务")
             aMapManager
         } catch (e: Exception) {
-            Timber.e(e, "❌ 高德地图地理围栏服务初始化失败")
+            Timber.e(e, "高德地图地理围栏服务初始化失败")
             throw RuntimeException("高德地图地理围栏服务不可用，请检查高德地图SDK配置", e)
         }
     }

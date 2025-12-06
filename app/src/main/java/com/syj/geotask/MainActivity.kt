@@ -318,7 +318,7 @@ class MainActivity : ComponentActivity() {
         // 延迟1秒后发送测试通知，确保权限状态已更新
         android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             try {
-                Timber.d("🧪 权限授予后开始测试通知功能")
+                Timber.d("权限授予后开始测试通知功能")
                 notificationService.showTestNotification()
             } catch (e: Exception) {
                 Timber.e(e, "权限授予后测试通知失败")

@@ -45,11 +45,11 @@ class TaskReminderManager @Inject constructor(
                 workRequest
             )
 
-            Timber.d("✅ 成功调度任务 $taskId 的提醒，延迟 ${actualDelay}ms (${actualDelay / 1000}秒)")
+            Timber.d("成功调度任务 $taskId 的提醒，延迟 ${actualDelay}ms (${actualDelay / 1000}秒)")
             Timber.d("WorkRequest ID: ${workRequest.id}")
             Timber.d("WorkRequest Tag: ${SingleTaskReminderWorker.WORK_NAME_PREFIX + taskId}")
         } catch (e: Exception) {
-            Timber.e(e, "❌ 调度任务提醒失败: taskId=$taskId, delay=$delayMillis")
+            Timber.e(e, "调度任务提醒失败: taskId=$taskId, delay=$delayMillis")
         }
     }
 

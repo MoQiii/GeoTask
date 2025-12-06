@@ -25,12 +25,12 @@ class Recorder {
             android.util.Log.d("Recorder", "🎤 Recorder.startRecording() 被调用")
             android.util.Log.d("Recorder", "📁 输出文件: ${outputFile.absolutePath}")
             recorder = AudioRecordThread(outputFile, onError)
-            android.util.Log.d("Recorder", "🚀 启动录音线程...")
+            android.util.Log.d("Recorder", "启动录音线程...")
             recorder?.start()
-            android.util.Log.d("Recorder", "✅ 录音线程已启动")
+            android.util.Log.d("Recorder", "录音线程已启动")
             true
         } catch (e: Exception) {
-            android.util.Log.e("Recorder", "❌ 启动录音失败", e)
+            android.util.Log.e("Recorder", "启动录音失败", e)
             onError(e)
             false
         }
@@ -43,9 +43,9 @@ class Recorder {
             @Suppress("BlockingMethodInNonBlockingContext")
             recorder?.join()
             recorder = null
-            android.util.Log.d("Recorder", "✅ 录音已停止")
+            android.util.Log.d("Recorder", "录音已停止")
         } catch (e: Exception) {
-            android.util.Log.e("Recorder", "❌ 停止录音失败", e)
+            android.util.Log.e("Recorder", "停止录音失败", e)
         }
     }
 }

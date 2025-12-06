@@ -252,10 +252,10 @@ fun TaskListScreen(
                                 Timber.d("🛑 停止语音录音")
                                 viewModel.stopVoiceRecordingAndProcess(
                                     onSuccess = { recognizedText ->
-                                        Timber.d("✅ 语音任务创建成功: $recognizedText")
+                                        Timber.d("语音任务创建成功: $recognizedText")
                                     },
                                     onError = { errorMsg ->
-                                        Timber.e("❌ 语音任务创建失败: $errorMsg")
+                                        Timber.e("语音任务创建失败: $errorMsg")
                                     }
                                 )
                             }
@@ -266,7 +266,7 @@ fun TaskListScreen(
                             val recordingStarted = viewModel.startVoiceRecording()
                             Timber.d("🎤 语音录音启动结果: $recordingStarted")
                             if (!recordingStarted) {
-                                Timber.e("❌ 录音启动失败")
+                                Timber.e("录音启动失败")
                             }
                         }
                     }

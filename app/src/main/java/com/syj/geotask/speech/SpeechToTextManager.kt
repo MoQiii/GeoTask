@@ -73,7 +73,7 @@ class SpeechToTextManager(private val context: Context) {
             
             isInitialized = whisperContext != null
             if (isInitialized) {
-                Timber.d("✅ Whisper初始化成功")
+                Timber.d("Whisper初始化成功")
                 
                 // 测试系统信息
                 try {
@@ -83,7 +83,7 @@ class SpeechToTextManager(private val context: Context) {
                     Timber.w("获取Whisper系统信息失败: ${e.message}")
                 }
             } else {
-                Timber.e("❌ Whisper初始化失败")
+                Timber.e("Whisper初始化失败")
                 
                 // 尝试获取更多调试信息
                 try {
@@ -117,13 +117,13 @@ class SpeechToTextManager(private val context: Context) {
             val success = recorder.startRecording(outputFile, onError)
             Timber.d("🎤 recorder.startRecording() 返回: $success")
             if (success) {
-                Timber.d("✅ 开始录音成功: ${outputFile.absolutePath}")
+                Timber.d("开始录音成功: ${outputFile.absolutePath}")
             } else {
-                Timber.e("❌ recorder.startRecording() 返回 false")
+                Timber.e("recorder.startRecording() 返回 false")
             }
             success
         } catch (e: Exception) {
-            Timber.e(e, "❌ 开始录音时发生异常")
+            Timber.e(e, "开始录音时发生异常")
             onError(e)
             false
         }

@@ -73,20 +73,20 @@ class VoiceTaskManager(
         Timber.d("🎤 VoiceTaskManager.startRecording() 被调用")
         try {
             if (_isRecording.value) {
-                Timber.w("⚠️ 录音已在进行中")
+                Timber.w("录音已在进行中")
                 return@withContext false
             }
             
             // 检查录音权限
             if (!PermissionUtils.hasRecordAudioPermission(context)) {
-                Timber.e("❌ 缺少录音权限")
+                Timber.e("缺少录音权限")
                 _errorMessage.value = "缺少录音权限，请在设置中允许录音权限"
                 return@withContext false
             }
             
             // 检查位置权限
             if (!PermissionUtils.hasLocationPermission(context)) {
-                Timber.w("⚠️ 缺少位置权限，将使用默认位置")
+                Timber.w("缺少位置权限，将使用默认位置")
             }
             
             Timber.d("📁 创建临时录音文件...")
@@ -99,7 +99,7 @@ class VoiceTaskManager(
             val success = speechToTextManager.startRecording(
                 tempAudioFile!!,
                 onError = { exception ->
-                    Timber.e(exception, "❌ 录音失败")
+                    Timber.e(exception, "录音失败")
                     _errorMessage.value = "录音失败: ${exception.message}"
                     _isRecording.value = false
                 }
@@ -110,15 +110,15 @@ class VoiceTaskManager(
             if (success) {
                 _isRecording.value = true
                 _errorMessage.value = null
-                Timber.d("✅ 开始录音成功: ${tempAudioFile?.absolutePath}")
+                Timber.d("开始录音成功: ${tempAudioFile?.absolutePath}")
             } else {
-                Timber.e("❌ 开始录音失败")
+                Timber.e("开始录音失败")
                 _errorMessage.value = "开始录音失败"
             }
             
             return@withContext success
         } catch (e: Exception) {
-            Timber.e(e, "❌ 开始录音时发生异常")
+            Timber.e(e, "开始录音时发生异常")
             _errorMessage.value = "开始录音失败: ${e.message}"
             return@withContext false
         }
@@ -225,7 +225,7 @@ class VoiceTaskManager(
             val timeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
             val futureTimeString = timeFormat.format(futureTime)
             
-            // 在识别文本后追加任务信息
+            // todo 暂时写死位置和时间的内容，后端工作流暂时没有设置处理时间和地理实体识别的功能
             val enhancedText = buildString {
                 append("@任务文本@："+recognizedText)
                 append("。")

@@ -98,11 +98,11 @@ class NotificationService @Inject constructor(private val context: Context) {
         
         // 检查通知权限
         if (!PermissionUtils.hasNotificationPermission(context)) {
-            Timber.e("❌ 通知权限未授予，无法显示任务提醒通知")
+            Timber.e("通知权限未授予，无法显示任务提醒通知")
             return
         }
 
-        Timber.d("✅ 通知权限检查通过")
+        Timber.d("通知权限检查通过")
         
         // 如果提供了位置信息，进行位置验证
         if (taskLatitude != null && taskLongitude != null && geofenceRadius > 0) {
@@ -123,28 +123,28 @@ class NotificationService @Inject constructor(private val context: Context) {
                 
                 // 检查经纬度是否在合理范围内
                 if (taskLatitude < -90 || taskLatitude > 90 || taskLongitude < -180 || taskLongitude > 180) {
-                    Timber.e("❌ 任务经纬度数据异常: lat=$taskLatitude, lng=$taskLongitude")
+                    Timber.e("任务经纬度数据异常: lat=$taskLatitude, lng=$taskLongitude")
                     return
                 }
                 
                 if (currentLocation.latitude < -90 || currentLocation.latitude > 90 || 
                     currentLocation.longitude < -180 || currentLocation.longitude > 180) {
-                    Timber.e("❌ 当前位置经纬度数据异常: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}")
+                    Timber.e("当前位置经纬度数据异常: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}")
                     return
                 }
                 
                 // 如果距离超过1000km，可能是数据问题
                 if (distance > 1000000) {
-                    Timber.w("⚠️ 距离异常过大(${distance}m)，可能是经纬度数据问题，跳过位置验证")
+                    Timber.w("距离异常过大(${distance}m)，可能是经纬度数据问题，跳过位置验证")
                     // 不return，继续发送通知，但记录警告
                 } else if (distance > geofenceRadius) {
-                    Timber.w("❌ 位置验证失败，距离过远不发送通知: taskId=$taskId, 距离=${distance}m, 半径=${geofenceRadius}m")
+                    Timber.w("位置验证失败，距离过远不发送通知: taskId=$taskId, 距离=${distance}m, 半径=${geofenceRadius}m")
                     return
                 } else {
-                    Timber.d("✅ 位置验证通过，发送通知: taskId=$taskId, 距离=${distance}m")
+                    Timber.d("位置验证通过，发送通知: taskId=$taskId, 距离=${distance}m")
                 }
             } else {
-                Timber.w("⚠️ 无法获取当前位置，跳过位置验证: taskId=$taskId")
+                Timber.w("无法获取当前位置，跳过位置验证: taskId=$taskId")
             }
         }
         
@@ -178,12 +178,12 @@ class NotificationService @Inject constructor(private val context: Context) {
 
             with(NotificationManagerCompat.from(context)) {
                 notify(taskId.toInt(), notification)
-                Timber.d("✅ 任务提醒通知已成功发送: taskId=$taskId, title=$taskTitle")
+                Timber.d("任务提醒通知已成功发送: taskId=$taskId, title=$taskTitle")
             }
         } catch (e: SecurityException) {
-            Timber.e(e, "❌ 显示任务提醒通知时发生SecurityException，权限可能被拒绝")
+            Timber.e(e, "显示任务提醒通知时发生SecurityException，权限可能被拒绝")
         } catch (e: Exception) {
-            Timber.e(e, "❌ 显示任务提醒通知时发生未知错误")
+            Timber.e(e, "显示任务提醒通知时发生未知错误")
         }
     }
 
@@ -267,7 +267,7 @@ class NotificationService @Inject constructor(private val context: Context) {
                     locationResult = location
                     locationCompleted = true
                 } catch (e: Exception) {
-                    Timber.e(e, "❌ 高德地图定位失败")
+                    Timber.e(e, "高德地图定位失败")
                     locationCompleted = true
                 }
             }
@@ -279,16 +279,16 @@ class NotificationService @Inject constructor(private val context: Context) {
             }
             
             if (locationResult != null) {
-                Timber.d("✅ 高德地图定位成功: lat=${locationResult!!.latitude}, lng=${locationResult!!.longitude}, accuracy=${locationResult!!.accuracy}m")
+                Timber.d("高德地图定位成功: lat=${locationResult!!.latitude}, lng=${locationResult!!.longitude}, accuracy=${locationResult!!.accuracy}m")
                 return locationResult
             }
             
             // 如果高德定位失败，回退到原生定位
-            Timber.w("⚠️ 高德地图定位失败，回退到原生定位")
+            Timber.w("高德地图定位失败，回退到原生定位")
             getNativeLocation()
             
         } catch (e: Exception) {
-            Timber.e(e, "❌ 获取当前位置时发生异常，回退到原生定位")
+            Timber.e(e, "获取当前位置时发生异常，回退到原生定位")
             getNativeLocation()
         }
     }
@@ -325,14 +325,14 @@ class NotificationService @Inject constructor(private val context: Context) {
             }
             
             if (result != null) {
-                Timber.d("✅ 原生定位成功: lat=${result.latitude}, lng=${result.longitude}, accuracy=${result.accuracy}m, provider=${result.provider}")
+                Timber.d("原生定位成功: lat=${result.latitude}, lng=${result.longitude}, accuracy=${result.accuracy}m, provider=${result.provider}")
             } else {
-                Timber.w("❌ 原生定位也失败")
+                Timber.w("原生定位也失败")
             }
             
             result
         } catch (e: Exception) {
-            Timber.e(e, "❌ 原生定位时发生异常")
+            Timber.e(e, "原生定位时发生异常")
             null
         }
     }
@@ -342,15 +342,15 @@ class NotificationService @Inject constructor(private val context: Context) {
      * 用于立即测试通知是否正常工作
      */
     fun showTestNotification() {
-        Timber.d("🧪 开始测试通知功能")
+        Timber.d("开始测试通知功能")
         
         // 检查通知权限
         if (!PermissionUtils.hasNotificationPermission(context)) {
-            Timber.e("❌ 测试失败：通知权限未授予")
+            Timber.e("测试失败：通知权限未授予")
             return
         }
 
-        Timber.d("✅ 测试：通知权限检查通过")
+        Timber.d("测试：通知权限检查通过")
         
         try {
             // 创建点击通知后的Intent
@@ -381,12 +381,12 @@ class NotificationService @Inject constructor(private val context: Context) {
 
             with(NotificationManagerCompat.from(context)) {
                 notify(99999, notification)
-                Timber.d("✅ 测试通知已成功发送")
+                Timber.d("测试通知已成功发送")
             }
         } catch (e: SecurityException) {
-            Timber.e(e, "❌ 测试失败：显示通知时发生SecurityException，权限可能被拒绝")
+            Timber.e(e, "测试失败：显示通知时发生SecurityException，权限可能被拒绝")
         } catch (e: Exception) {
-            Timber.e(e, "❌ 测试失败：显示通知时发生未知错误")
+            Timber.e(e, "测试失败：显示通知时发生未知错误")
         }
     }
 
@@ -395,15 +395,15 @@ class NotificationService @Inject constructor(private val context: Context) {
      * 用于验证高德地图定位服务是否正常工作
      */
     fun testAMapLocation() {
-        Timber.d("🧪 开始测试高德地图定位功能")
+        Timber.d("开始测试高德地图定位功能")
         
         // 检查位置权限
         if (!PermissionUtils.hasLocationPermission(context)) {
-            Timber.e("❌ 测试失败：位置权限未授予")
+            Timber.e("测试失败：位置权限未授予")
             return
         }
 
-        Timber.d("✅ 测试：位置权限检查通过")
+        Timber.d("测试：位置权限检查通过")
         
         // 测试高德地图定位服务
         CoroutineScope(Dispatchers.IO).launch {
@@ -411,27 +411,27 @@ class NotificationService @Inject constructor(private val context: Context) {
                 // 测试获取缓存位置
                 val cachedLocation = aMapLocationService.getLastKnownLocation()
                 if (cachedLocation != null) {
-                    Timber.d("✅ 高德地图缓存位置测试成功: lat=${cachedLocation.latitude}, lng=${cachedLocation.longitude}, accuracy=${cachedLocation.accuracy}m")
+                    Timber.d("高德地图缓存位置测试成功: lat=${cachedLocation.latitude}, lng=${cachedLocation.longitude}, accuracy=${cachedLocation.accuracy}m")
                 } else {
-                    Timber.d("⚠️ 高德地图缓存位置为空，测试实时定位")
+                    Timber.d("高德地图缓存位置为空，测试实时定位")
                 }
                 
                 // 测试实时定位
                 val currentLocation = aMapLocationService.getCurrentLocation()
                 if (currentLocation != null) {
-                    Timber.d("✅ 高德地图实时定位测试成功: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}, accuracy=${currentLocation.accuracy}m, provider=${currentLocation.provider}")
+                    Timber.d("高德地图实时定位测试成功: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}, accuracy=${currentLocation.accuracy}m, provider=${currentLocation.provider}")
                     
                     // 发送定位成功通知
                     showLocationTestNotification(currentLocation, true)
                 } else {
-                    Timber.e("❌ 高德地图实时定位测试失败")
+                    Timber.e("高德地图实时定位测试失败")
                     
                     // 发送定位失败通知
                     showLocationTestNotification(null, false)
                 }
                 
             } catch (e: Exception) {
-                Timber.e(e, "❌ 高德地图定位测试时发生异常")
+                Timber.e(e, "高德地图定位测试时发生异常")
                 showLocationTestNotification(null, false)
             }
         }
@@ -476,10 +476,10 @@ class NotificationService @Inject constructor(private val context: Context) {
 
             with(NotificationManagerCompat.from(context)) {
                 notify(88888, notification)
-                Timber.d("✅ 定位测试通知已发送: $title")
+                Timber.d("定位测试通知已发送: $title")
             }
         } catch (e: Exception) {
-            Timber.e(e, "❌ 发送定位测试通知时发生异常")
+            Timber.e(e, "发送定位测试通知时发生异常")
         }
     }
 }

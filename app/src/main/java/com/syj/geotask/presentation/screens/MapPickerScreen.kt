@@ -51,7 +51,7 @@ private fun getCurrentLocation(
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                Timber.w("❌ 位置权限未授予")
+                Timber.w("位置权限未授予")
                 onLocationError()
                 return@LaunchedEffect
             }
@@ -65,25 +65,25 @@ private fun getCurrentLocation(
                     try {
                         val currentLocation = aMapLocationService.getCurrentLocation()
                         if (currentLocation != null) {
-                            Timber.d("✅ 高德地图实时定位成功: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}")
+                            Timber.d("高德地图实时定位成功: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}")
                             onLocationReceived(currentLocation.latitude, currentLocation.longitude)
                         } else {
-                            Timber.w("⚠️ 高德地图定位失败，尝试使用原生定位")
+                            Timber.w("高德地图定位失败，尝试使用原生定位")
                             // 回退到原生定位
                             getNativeLocationSync(context, onLocationReceived, onLocationError)
                         }
                     } catch (e: Exception) {
-                        Timber.e(e, "❌ 高德地图定位异常，回退到原生定位")
+                        Timber.e(e, "高德地图定位异常，回退到原生定位")
                         getNativeLocationSync(context, onLocationReceived, onLocationError)
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "❌ 高德地图定位异常，回退到原生定位")
+                Timber.e(e, "高德地图定位异常，回退到原生定位")
                 getNativeLocationSync(context, onLocationReceived, onLocationError)
             }
             
         } catch (e: Exception) {
-            Timber.e(e, "❌ 获取当前位置异常")
+            Timber.e(e, "获取当前位置异常")
             onLocationError()
         }
     }
@@ -105,19 +105,19 @@ private suspend fun getNativeLocation(
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
-                    Timber.d("✅ 原生定位成功: lat=${location.latitude}, lng=${location.longitude}")
+                    Timber.d("原生定位成功: lat=${location.latitude}, lng=${location.longitude}")
                     onLocationReceived(location.latitude, location.longitude)
                 } else {
-                    Timber.w("⚠️ 原生定位也无法获取位置")
+                    Timber.w("原生定位也无法获取位置")
                     onLocationError()
                 }
             }
             .addOnFailureListener { exception ->
-                Timber.e(exception, "❌ 原生定位失败")
+                Timber.e(exception, "原生定位失败")
                 onLocationError()
             }
     } catch (e: Exception) {
-        Timber.e(e, "❌ 原生定位异常")
+        Timber.e(e, "原生定位异常")
         onLocationError()
     }
 }
@@ -138,19 +138,19 @@ private fun getNativeLocationSync(
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
-                    Timber.d("✅ 原生定位成功: lat=${location.latitude}, lng=${location.longitude}")
+                    Timber.d("原生定位成功: lat=${location.latitude}, lng=${location.longitude}")
                     onLocationReceived(location.latitude, location.longitude)
                 } else {
-                    Timber.w("⚠️ 原生定位也无法获取位置")
+                    Timber.w("原生定位也无法获取位置")
                     onLocationError()
                 }
             }
             .addOnFailureListener { exception ->
-                Timber.e(exception, "❌ 原生定位失败")
+                Timber.e(exception, "原生定位失败")
                 onLocationError()
             }
     } catch (e: Exception) {
-        Timber.e(e, "❌ 原生定位异常")
+        Timber.e(e, "原生定位异常")
         onLocationError()
     }
 }
@@ -175,11 +175,11 @@ private fun requestLocationUpdates(
     val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             locationResult.lastLocation?.let { location ->
-                Timber.d("✅ 位置更新成功: lat=${location.latitude}, lng=${location.longitude}")
+                Timber.d("位置更新成功: lat=${location.latitude}, lng=${location.longitude}")
                 onLocationReceived(location.latitude, location.longitude)
                 fusedLocationClient.removeLocationUpdates(this)
             } ?: run {
-                Timber.w("⚠️ 位置更新结果为空")
+                Timber.w("位置更新结果为空")
                 onLocationError()
                 fusedLocationClient.removeLocationUpdates(this)
             }
@@ -187,7 +187,7 @@ private fun requestLocationUpdates(
         
         override fun onLocationAvailability(availability: LocationAvailability) {
             if (!availability.isLocationAvailable) {
-                Timber.w("⚠️ 位置服务不可用")
+                Timber.w("位置服务不可用")
                 onLocationError()
                 fusedLocationClient.removeLocationUpdates(this)
             }
@@ -201,7 +201,7 @@ private fun requestLocationUpdates(
             Looper.getMainLooper()
         )
     } catch (e: Exception) {
-        Timber.e(e, "❌ 请求位置更新异常")
+        Timber.e(e, "请求位置更新异常")
         onLocationError()
     }
 }
@@ -239,7 +239,7 @@ fun MapPickerScreen(
             Timber.d("📍 更新地图中心位置: lat=$lat, lng=$lng")
         },
         onLocationError = {
-            Timber.w("⚠️ 无法获取当前位置")
+            Timber.w("无法获取当前位置")
             isLoadingLocation = false
             hasValidLocation = false
         }

@@ -87,9 +87,9 @@ class AMapGeofenceManager(private val context: Context) : IGeofenceManager {
             val result = addGeofenceWithCallback(task.id.toString(), task.latitude!!, task.longitude!!, radius)
             
             if (result) {
-                Timber.d("✅ 高德地理围栏添加成功: taskId=${task.id}")
+                Timber.d("高德地理围栏添加成功: taskId=${task.id}")
             } else {
-                Timber.e("❌ 高德地理围栏添加失败: taskId=${task.id}")
+                Timber.e("高德地理围栏添加失败: taskId=${task.id}")
                 // 失败时移除存储的任务信息
                 taskInfoMap.remove(task.id.toString())
             }

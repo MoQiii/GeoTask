@@ -94,12 +94,12 @@ class TaskViewModel @Inject constructor(
             try {
                 val initialized = voiceTaskManager.initialize()
                 if (initialized) {
-                    Timber.d("✅ 语音任务管理器初始化成功")
+                    Timber.d("语音任务管理器初始化成功")
                 } else {
-                    Timber.e("❌ 语音任务管理器初始化失败")
+                    Timber.e("语音任务管理器初始化失败")
                 }
             } catch (e: Exception) {
-                Timber.e(e, "❌ 初始化语音任务管理器时发生错误")
+                Timber.e(e, "初始化语音任务管理器时发生错误")
             }
         }
     }
@@ -131,12 +131,12 @@ class TaskViewModel @Inject constructor(
                     Timber.d("  任务详情: ${tasks.map { "${it.id}:${it.title}" }}")
                     _tasks.value = tasks
                     _isLoading.value = false
-                    Timber.d("✅ ViewModel已更新任务状态")
+                    Timber.d("ViewModel已更新任务状态")
                     return@collect
                 }
 
             } catch (e: Exception) {
-                Timber.e(e, "❌ ViewModel加载任务失败")
+                Timber.e(e, "ViewModel加载任务失败")
                 _tasks.value = emptyList()
                 _isLoading.value = false
             }
@@ -163,13 +163,13 @@ class TaskViewModel @Inject constructor(
             Timber.d("🎤 清除错误状态完成，开始调用 voiceTaskManager.startRecording()")
             val success = voiceTaskManager.startRecording()
             if (success) {
-                Timber.d("✅ 开始语音录音成功")
+                Timber.d("开始语音录音成功")
             } else {
-                Timber.e("❌ 开始语音录音失败")
+                Timber.e("开始语音录音失败")
             }
             success
         } catch (e: Exception) {
-            Timber.e(e, "❌ 开始语音录音时发生错误")
+            Timber.e(e, "开始语音录音时发生错误")
             false
         }
     }
@@ -184,18 +184,18 @@ class TaskViewModel @Inject constructor(
         try {
             voiceTaskManager.stopRecordingAndProcess(
                 onSuccess = { recognizedText ->
-                    Timber.d("✅ 语音任务创建成功: $recognizedText")
+                    Timber.d("语音任务创建成功: $recognizedText")
                     // 重新加载任务列表以显示新创建的任务
                     loadTasks()
                     onSuccess(recognizedText)
                 },
                 onError = { errorMsg ->
-                    Timber.e("❌ 语音任务创建失败: $errorMsg")
+                    Timber.e("语音任务创建失败: $errorMsg")
                     onError(errorMsg)
                 }
             )
         } catch (e: Exception) {
-            Timber.e(e, "❌ 停止语音录音时发生错误")
+            Timber.e(e, "停止语音录音时发生错误")
             onError("处理语音录音失败: ${e.message}")
         }
     }
@@ -208,7 +208,7 @@ class TaskViewModel @Inject constructor(
             voiceTaskManager.cancelRecording()
             Timber.d("🛑 已取消语音录音")
         } catch (e: Exception) {
-            Timber.e(e, "❌ 取消语音录音时发生错误")
+            Timber.e(e, "取消语音录音时发生错误")
         }
     }
 
@@ -299,10 +299,10 @@ class TaskViewModel @Inject constructor(
             
             if (task.location != null && task.latitude != null && task.longitude != null) {
                 deleteTaskWithGeofenceUseCase(task)
-                Timber.d("✅ 任务已删除（带地理围栏）: ${task.title}")
+                Timber.d("任务已删除（带地理围栏）: ${task.title}")
             } else {
                 deleteTaskUseCase(task)
-                Timber.d("✅ 任务已删除: ${task.title}")
+                Timber.d("任务已删除: ${task.title}")
             }
             
             // 本地更新状态，避免重新加载
@@ -313,7 +313,7 @@ class TaskViewModel @Inject constructor(
             
             true // 删除成功
         } catch (e: Exception) {
-            Timber.e(e, "❌ 删除任务失败: ${task.title}")
+            Timber.e(e, "删除任务失败: ${task.title}")
             // 如果本地更新失败，回退到重新加载
             loadTasks()
             false // 删除失败
@@ -467,11 +467,11 @@ class TaskViewModel @Inject constructor(
                 // 保存任务并获取生成的ID
                 val taskId: Long = if (selectedLocation != null && selectedLatitude != null && selectedLongitude != null) {
                     val id = addTaskWithGeofenceUseCase(task)
-                    Timber.d("✅ 任务已保存（带地理围栏）: ${task.title}")
+                    Timber.d("任务已保存（带地理围栏）: ${task.title}")
                     id
                 } else {
                     val id = addTaskUseCase(task)
-                    Timber.d("✅ 任务已保存: ${task.title}")
+                    Timber.d("任务已保存: ${task.title}")
                     id
                 }
                 
@@ -490,7 +490,7 @@ class TaskViewModel @Inject constructor(
                         dueDate = task.dueDate,
                         dueTime = task.dueTime
                     )
-                    Timber.d("✅ 任务提醒调度完成: ${task.title}")
+                    Timber.d("任务提醒调度完成: ${task.title}")
                 } else {
                     Timber.d("⏸️ 任务未启用提醒: ${task.title}")
                 }
@@ -500,7 +500,7 @@ class TaskViewModel @Inject constructor(
                 
                 true // 保存成功
             } catch (e: Exception) {
-                Timber.e(e, "❌ 保存任务失败: ${task.title}")
+                Timber.e(e, "保存任务失败: ${task.title}")
                 // 如果本地更新失败，回退到重新加载
                 loadTasks()
                 false // 保存失败
