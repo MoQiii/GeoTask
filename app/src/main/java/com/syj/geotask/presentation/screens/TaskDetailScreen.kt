@@ -30,11 +30,24 @@ fun TaskDetailScreen(
 ) {
     var task by remember { mutableStateOf<Task?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var shouldDelete by remember { mutableStateOf(false) }
 
     LaunchedEffect(taskId) {
         isLoading = true
         task = viewModel.getTaskById(taskId)
         isLoading = false
+    }
+
+    // 处理删除任务的协程
+    LaunchedEffect(shouldDelete) {
+        if (shouldDelete && task != null) {
+            val success = viewModel.deleteTaskSuspend(task!!)
+            if (success) {
+                // 删除成功后才返回
+                onNavigateBack()
+            }
+            shouldDelete = false // 重置状态
+        }
     }
 
     Scaffold(
@@ -164,8 +177,7 @@ fun TaskDetailScreen(
                 // Delete Button
                 OutlinedButton(
                     onClick = {
-                        viewModel.deleteTask(task!!)
-                        onNavigateBack()
+                        shouldDelete = true
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(

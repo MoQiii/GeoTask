@@ -11,11 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.syj.geotask.domain.model.Task
 import com.syj.geotask.presentation.viewmodel.TaskViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,6 +44,7 @@ fun AddTaskScreen(
     
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var shouldSave by remember { mutableStateOf(false) }
 
     // 监听从MapPickerScreen返回的位置数据
     LaunchedEffect(Unit) {
@@ -196,13 +199,24 @@ fun AddTaskScreen(
             // Save Button
             Button(
                 onClick = {
-                    viewModel.saveTask()
-                    onNavigateBack()
+                    shouldSave = true
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = title.isNotBlank()
             ) {
                 Text("保存任务")
+            }
+
+            // 处理保存任务的协程
+            LaunchedEffect(shouldSave) {
+                if (shouldSave) {
+                    val success = viewModel.saveTask()
+                    if (success) {
+                        // 保存成功后才返回
+                        onNavigateBack()
+                    }
+                    shouldSave = false // 重置状态
+                }
             }
         }
     }

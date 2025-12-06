@@ -15,7 +15,8 @@ import com.syj.geotask.domain.repository.TaskRepository
 import com.syj.geotask.domain.repository.UserRepository
 import com.syj.geotask.domain.usecase.*
 import com.syj.geotask.presentation.theme.ThemeManager
-import com.syj.geotask.speech123.SpeechToTextManager
+import com.syj.geotask.speech.SpeechToTextManager
+import org.openapitools.client.apis.TaskControllerApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -57,12 +58,18 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideTaskControllerApi(): TaskControllerApi {
+        return TaskControllerApi()
+    }
+
+    @Provides
+    @Singleton
     fun provideTaskRepository(
-        taskDao: TaskDao,
+        taskControllerApi: TaskControllerApi,
         geofenceManager: IGeofenceManager,
         @ApplicationContext context: Context
     ): TaskRepository {
-        return TaskRepositoryImpl(taskDao, geofenceManager, context)
+        return TaskRepositoryImpl(taskControllerApi, geofenceManager, context)
     }
 
     @Provides

@@ -43,6 +43,7 @@ class TaskControllerApi(basePath: kotlin.String = defaultBasePath, client: Call.
         val defaultBasePath: String by lazy {
             System.getProperties().getProperty(ApiClient.baseUrlKey, "http://localhost:8080")
         }
+
     }
 
     /**

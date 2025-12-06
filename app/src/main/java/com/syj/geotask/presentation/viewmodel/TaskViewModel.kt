@@ -1,4 +1,4 @@
-package com.syj.geotask.presentation.viewmodel
+    package com.syj.geotask.presentation.viewmodel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,8 +17,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Date
@@ -74,6 +72,7 @@ class TaskViewModel @Inject constructor(
         private set
 
     init {
+        // 初始加载任务
         loadTasks()
     }
 
@@ -81,25 +80,36 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val tasks = combine(
-                    when (filterType) {
-                        FilterType.ALL -> getTasksUseCase.getAllTasks()
-                        FilterType.COMPLETED -> getTasksUseCase.getTasksByCompletionStatus(true)
-                        FilterType.INCOMPLETE -> getTasksUseCase.getTasksByCompletionStatus(false)
-                    },
+                Timber.d("🔄 ViewModel开始加载任务")
+                Timber.d("  过滤类型: $filterType")
+                Timber.d("  搜索查询: '$searchQuery'")
+                
+                val tasksFlow = when (filterType) {
+                    FilterType.ALL -> getTasksUseCase.getAllTasks()
+                    FilterType.COMPLETED -> getTasksUseCase.getTasksByCompletionStatus(true)
+                    FilterType.INCOMPLETE -> getTasksUseCase.getTasksByCompletionStatus(false)
+                }
+                
+                // 如果有搜索查询，使用搜索结果，否则使用过滤结果
+                val finalFlow = if (searchQuery.isBlank()) {
+                    tasksFlow
+                } else {
                     getTasksUseCase.searchTasks(searchQuery)
-                ) { allTasks, searchedTasks ->
-                    if (searchQuery.isBlank()) {
-                        allTasks
-                    } else {
-                        searchedTasks
-                    }
-                }.first()
-                _tasks.value = tasks
+                }
+                
+                Timber.d("📡 开始从Flow收集数据")
+                finalFlow.collect { tasks ->
+                    Timber.d("📋 ViewModel收到任务列表: ${tasks.size} 个任务")
+                    Timber.d("  任务详情: ${tasks.map { "${it.id}:${it.title}" }}")
+                    _tasks.value = tasks
+                    _isLoading.value = false
+                    Timber.d("✅ ViewModel已更新任务状态")
+                    return@collect
+                }
 
             } catch (e: Exception) {
-                // Handle error
-            } finally {
+                Timber.e(e, "❌ ViewModel加载任务失败")
+                _tasks.value = emptyList()
                 _isLoading.value = false
             }
         }
@@ -118,10 +128,15 @@ class TaskViewModel @Inject constructor(
     fun addTask(task: Task) {
         viewModelScope.launch {
             try {
-                addTaskUseCase(task)
-                loadTasks()
+                val newTaskId = addTaskUseCase(task)
+                // 本地更新状态，避免重新加载
+                val newTask = task.copy(id = newTaskId)
+                val currentTasks = _tasks.value.toMutableList()
+                currentTasks.add(newTask)
+                _tasks.value = currentTasks
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
@@ -129,10 +144,15 @@ class TaskViewModel @Inject constructor(
     fun addTaskWithGeofence(task: Task) {
         viewModelScope.launch {
             try {
-                addTaskWithGeofenceUseCase(task)
-                loadTasks()
+                val newTaskId = addTaskWithGeofenceUseCase(task)
+                // 本地更新状态，避免重新加载
+                val newTask = task.copy(id = newTaskId)
+                val currentTasks = _tasks.value.toMutableList()
+                currentTasks.add(newTask)
+                _tasks.value = currentTasks
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
@@ -141,9 +161,16 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 updateTaskUseCase(task)
-                loadTasks()
+                // 本地更新状态，避免重新加载
+                val currentTasks = _tasks.value.toMutableList()
+                val index = currentTasks.indexOfFirst { it.id == task.id }
+                if (index != -1) {
+                    currentTasks[index] = task
+                    _tasks.value = currentTasks
+                }
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
@@ -152,21 +179,50 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 updateTaskWithGeofenceUseCase(task)
-                loadTasks()
+                // 本地更新状态，避免重新加载
+                val currentTasks = _tasks.value.toMutableList()
+                val index = currentTasks.indexOfFirst { it.id == task.id }
+                if (index != -1) {
+                    currentTasks[index] = task
+                    _tasks.value = currentTasks
+                }
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
 
     fun deleteTask(task: Task) {
         viewModelScope.launch {
-            try {
+            deleteTaskSuspend(task)
+        }
+    }
+
+    suspend fun deleteTaskSuspend(task: Task): Boolean {
+        return try {
+            Timber.d("🗑️ 开始删除任务: ${task.title} (ID: ${task.id})")
+            
+            if (task.location != null && task.latitude != null && task.longitude != null) {
+                deleteTaskWithGeofenceUseCase(task)
+                Timber.d("✅ 任务已删除（带地理围栏）: ${task.title}")
+            } else {
                 deleteTaskUseCase(task)
-                loadTasks()
-            } catch (e: Exception) {
-                // Handle error
+                Timber.d("✅ 任务已删除: ${task.title}")
             }
+            
+            // 本地更新状态，避免重新加载
+            val currentTasks = _tasks.value.toMutableList()
+            currentTasks.removeAll { it.id == task.id }
+            _tasks.value = currentTasks
+            Timber.d("🔄 已更新本地任务列表，当前任务数量: ${currentTasks.size}")
+            
+            true // 删除成功
+        } catch (e: Exception) {
+            Timber.e(e, "❌ 删除任务失败: ${task.title}")
+            // 如果本地更新失败，回退到重新加载
+            loadTasks()
+            false // 删除失败
         }
     }
 
@@ -174,9 +230,13 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 deleteTaskWithGeofenceUseCase(task)
-                loadTasks()
+                // 本地更新状态，避免重新加载
+                val currentTasks = _tasks.value.toMutableList()
+                currentTasks.removeAll { it.id == task.id }
+                _tasks.value = currentTasks
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
@@ -184,10 +244,18 @@ class TaskViewModel @Inject constructor(
     fun toggleTaskCompletion(task: Task) {
         viewModelScope.launch {
             try {
-                updateTaskUseCase(task.copy(isCompleted = !task.isCompleted))
-                loadTasks()
+                val updatedTask = task.copy(isCompleted = !task.isCompleted)
+                updateTaskUseCase(updatedTask)
+                // 本地更新状态，避免重新加载
+                val currentTasks = _tasks.value.toMutableList()
+                val index = currentTasks.indexOfFirst { it.id == task.id }
+                if (index != -1) {
+                    currentTasks[index] = updatedTask
+                    _tasks.value = currentTasks
+                }
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
@@ -197,11 +265,19 @@ class TaskViewModel @Inject constructor(
             try {
                 val task = getTasksUseCase.getTaskById(taskId)
                 task?.let {
-                    updateTaskUseCase(it.copy(isReminderEnabled = isEnabled))
-                    loadTasks()
+                    val updatedTask = it.copy(isReminderEnabled = isEnabled)
+                    updateTaskUseCase(updatedTask)
+                    // 本地更新状态，避免重新加载
+                    val currentTasks = _tasks.value.toMutableList()
+                    val index = currentTasks.indexOfFirst { it.id == taskId }
+                    if (index != -1) {
+                        currentTasks[index] = updatedTask
+                        _tasks.value = currentTasks
+                    }
                 }
             } catch (e: Exception) {
-                // Handle error
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
             }
         }
     }
@@ -259,8 +335,8 @@ class TaskViewModel @Inject constructor(
     }
 
     // 创建并保存任务
-    fun saveTask() {
-        if (taskTitle.isNotBlank()) {
+    suspend fun saveTask(): Boolean {
+        return if (taskTitle.isNotBlank()) {
             Timber.d("💾 开始保存任务:")
             Timber.d("  标题: $taskTitle")
             Timber.d("  描述: $taskDescription")
@@ -293,41 +369,50 @@ class TaskViewModel @Inject constructor(
             Timber.d("  longitude: ${task.longitude}")
             Timber.d("  geofenceRadius: ${task.geofenceRadius}")
             
-            viewModelScope.launch {
-                try {
-                    // 保存任务并获取生成的ID
-                    val taskId: Long = if (selectedLocation != null && selectedLatitude != null && selectedLongitude != null) {
-                        val id = addTaskWithGeofenceUseCase(task)
-                        Timber.d("✅ 任务已保存（带地理围栏）: ${task.title}")
-                        id
-                    } else {
-                        val id = addTaskUseCase(task)
-                        Timber.d("✅ 任务已保存: ${task.title}")
-                        id
-                    }
-                    
-                    // 如果启用了提醒，调度精确提醒
-                    if (task.isReminderEnabled) {
-                        Timber.d("🔔 开始调度任务提醒: taskId=$taskId, title=${task.title}")
-                        taskReminderManager.scheduleTaskReminderForTime(
-                            taskId = taskId,
-                            dueDate = task.dueDate,
-                            dueTime = task.dueTime
-                        )
-                        Timber.d("✅ 任务提醒调度完成: ${task.title}")
-                    } else {
-                        Timber.d("⏸️ 任务未启用提醒: ${task.title}")
-                    }
-                    
-                    // 重新加载任务列表
-                    loadTasks()
-                } catch (e: Exception) {
-                    Timber.e(e, "❌ 保存任务失败: ${task.title}")
+            try {
+                // 保存任务并获取生成的ID
+                val taskId: Long = if (selectedLocation != null && selectedLatitude != null && selectedLongitude != null) {
+                    val id = addTaskWithGeofenceUseCase(task)
+                    Timber.d("✅ 任务已保存（带地理围栏）: ${task.title}")
+                    id
+                } else {
+                    val id = addTaskUseCase(task)
+                    Timber.d("✅ 任务已保存: ${task.title}")
+                    id
                 }
+                
+                // 本地更新状态，避免重新加载
+                val newTask = task.copy(id = taskId)
+                val currentTasks = _tasks.value.toMutableList()
+                currentTasks.add(newTask)
+                _tasks.value = currentTasks
+                Timber.d("🔄 已更新本地任务列表，当前任务数量: ${currentTasks.size}")
+                
+                // 如果启用了提醒，调度精确提醒
+                if (task.isReminderEnabled) {
+                    Timber.d("🔔 开始调度任务提醒: taskId=$taskId, title=${task.title}")
+                    taskReminderManager.scheduleTaskReminderForTime(
+                        taskId = taskId,
+                        dueDate = task.dueDate,
+                        dueTime = task.dueTime
+                    )
+                    Timber.d("✅ 任务提醒调度完成: ${task.title}")
+                } else {
+                    Timber.d("⏸️ 任务未启用提醒: ${task.title}")
+                }
+                
+                // 保存后清空表单
+                clearTaskForm()
+                
+                true // 保存成功
+            } catch (e: Exception) {
+                Timber.e(e, "❌ 保存任务失败: ${task.title}")
+                // 如果本地更新失败，回退到重新加载
+                loadTasks()
+                false // 保存失败
             }
-            
-            // 保存后清空表单
-            clearTaskForm()
+        } else {
+            false // 标题为空，保存失败
         }
     }
 }

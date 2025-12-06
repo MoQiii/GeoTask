@@ -1,4 +1,4 @@
-package com.syj.geotask.speech123
+package com.syj.geotask.speech
 
 import android.content.Context
 import android.util.Log
@@ -7,7 +7,6 @@ import com.syj.geotask.recorder.Recorder
 import com.whispercpp.whisper.WhisperContext
 import kotlinx.coroutines.*
 import java.io.File
-import java.io.IOException
 
 class SpeechToTextManager(private val context: Context) {
     private val TAG = "SpeechToTextManager"

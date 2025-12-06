@@ -9,8 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,25 +22,24 @@ import com.syj.geotask.presentation.screens.MapPickerScreen
 import com.syj.geotask.presentation.screens.SettingsScreen
 import com.syj.geotask.presentation.screens.TaskDetailScreen
 import com.syj.geotask.presentation.screens.TaskListScreen
-import com.syj.geotask.speech123.SpeechTestScreen
+import com.syj.geotask.speech.SpeechTestScreen
 import com.syj.geotask.presentation.theme.GeoTaskTheme
 import com.syj.geotask.presentation.theme.ThemeManager
-import com.syj.geotask.utils.LogTest
-import com.syj.geotask.utils.PermissionUtils
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Process
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
 import com.syj.geotask.data.service.NotificationService
-import com.syj.geotask.utils.AssetUtils
+import com.whispercppdemo.whisper.WhisperTest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.openapitools.client.apis.TaskControllerApi
-import org.openapitools.client.models.Task
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

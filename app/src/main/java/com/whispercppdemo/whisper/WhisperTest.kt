@@ -3,6 +3,8 @@ package com.whispercppdemo.whisper
 import android.content.Context
 import android.util.Log
 import com.whispercpp.whisper.WhisperLib
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.openapitools.client.apis.TaskControllerApi
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -10,6 +12,8 @@ import java.nio.ByteOrder
 
 import org.openapitools.client.infrastructure.*
 import org.openapitools.client.models.*
+import timber.log.Timber
+import java.io.IOException
 
 object WhisperTest {
     private const val TAG = "WhisperTest"
@@ -67,5 +71,36 @@ object WhisperTest {
         // 5️⃣ 释放
         WhisperLib.freeContext(whisperContext)
 
+    }
+    // 挂起函数，异步 ping
+    suspend fun pingIP(ip: String, timeoutMs: Int = 3000): Boolean = withContext(Dispatchers.IO) {
+        try {
+            // 使用 system ping
+            val process = Runtime.getRuntime().exec("/system/bin/ping -c 1 -W ${timeoutMs / 1000} $ip")
+            val exitCode = process.waitFor()
+            exitCode == 0
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false
+        }
+    }
+    suspend fun apitest(){
+        val apiInstance = TaskControllerApi()
+        val id : kotlin.Long = 4 // kotlin.Long |
+        try {
+            Timber.w("apitestapitest start")
+            val ip = "10.20.0.1"
+            val reachable = pingIP(ip)
+            Timber.d("apitestapitest Ping $ip reachable = $reachable")
+            val result : kotlin.Boolean = apiInstance.deleteTask(id)
+            Timber.w("apitestapitest end")
+            println(result)
+        } catch (e: ClientException) {
+            println("4xx response calling TaskControllerApi#deleteTask")
+            e.printStackTrace()
+        } catch (e: ServerException) {
+            println("5xx response calling TaskControllerApi#deleteTask")
+            e.printStackTrace()
+        }
     }
 }

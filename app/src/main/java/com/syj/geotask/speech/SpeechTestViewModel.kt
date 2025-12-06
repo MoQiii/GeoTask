@@ -1,6 +1,5 @@
-package com.syj.geotask.speech123
+package com.syj.geotask.speech
 
-import android.app.Application
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

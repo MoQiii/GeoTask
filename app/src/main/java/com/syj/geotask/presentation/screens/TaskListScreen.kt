@@ -40,11 +40,23 @@ fun TaskListScreen(
 
     //启动一个协程 这个协程和 Composable 的生命周期绑定
     LaunchedEffect(searchQuery) {
-        viewModel.onSearchQueryChanged(searchQuery)
+        // 只有当 searchQuery 真正改变时才调用，避免初始化时的重复调用
+        if (searchQuery != viewModel.searchQuery) {
+            viewModel.onSearchQueryChanged(searchQuery)
+        }
     }
 
     LaunchedEffect(filterType) {
-        viewModel.onFilterTypeChanged(filterType)
+        // 只有当 filterType 真正改变时才调用，避免初始化时的重复调用
+        if (filterType != viewModel.filterType) {
+            viewModel.onFilterTypeChanged(filterType)
+        }
+    }
+
+    // 监听页面重新出现，确保数据是最新的
+    LaunchedEffect(Unit) {
+        // 当页面重新进入时，重新加载任务以确保数据同步
+        viewModel.onSearchQueryChanged(searchQuery)
     }
 
     Scaffold(

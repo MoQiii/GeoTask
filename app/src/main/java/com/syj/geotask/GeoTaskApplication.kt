@@ -15,6 +15,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.openapitools.client.apis.TaskControllerApi
+import org.openapitools.client.infrastructure.ApiClient
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -34,10 +36,10 @@ class GeoTaskApplication : Application(), Configuration.Provider {
     lateinit var hiltWorkerFactory: HiltWorkerFactory
     
     private val applicationScope = CoroutineScope(Dispatchers.IO)
-    
+
     override fun onCreate() {
         super.onCreate()
-        
+
         // 初始化Timber日志框架
         initializeTimber()
         
