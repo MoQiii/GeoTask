@@ -70,7 +70,7 @@ class VoiceTaskManager(
      * 开始录音
      */
     suspend fun startRecording(): Boolean = withContext(Dispatchers.IO) {
-        Timber.d("🎤 VoiceTaskManager.startRecording() 被调用")
+        Timber.d("VoiceTaskManager.startRecording() 被调用")
         try {
             if (_isRecording.value) {
                 Timber.w("录音已在进行中")
@@ -89,12 +89,12 @@ class VoiceTaskManager(
                 Timber.w("缺少位置权限，将使用默认位置")
             }
             
-            Timber.d("📁 创建临时录音文件...")
+            Timber.d("创建临时录音文件...")
             // 创建临时录音文件
             tempAudioFile = createTempAudioFile()
-            Timber.d("📁 临时录音文件创建完成: ${tempAudioFile?.absolutePath}")
+            Timber.d("临时录音文件创建完成: ${tempAudioFile?.absolutePath}")
             
-            Timber.d("🎙️ 开始调用 speechToTextManager.startRecording()...")
+            Timber.d("开始调用 speechToTextManager.startRecording()...")
             // 开始录音
             val success = speechToTextManager.startRecording(
                 tempAudioFile!!,
@@ -105,7 +105,7 @@ class VoiceTaskManager(
                 }
             )
             
-            Timber.d("🎙️ speechToTextManager.startRecording() 返回: $success")
+            Timber.d("speechToTextManager.startRecording() 返回: $success")
             
             if (success) {
                 _isRecording.value = true

@@ -22,8 +22,8 @@ class Recorder {
 
     suspend fun startRecording(outputFile: File, onError: (Exception) -> Unit): Boolean = withContext(scope.coroutineContext) {
         try {
-            android.util.Log.d("Recorder", "🎤 Recorder.startRecording() 被调用")
-            android.util.Log.d("Recorder", "📁 输出文件: ${outputFile.absolutePath}")
+            android.util.Log.d("Recorder", "Recorder.startRecording() 被调用")
+            android.util.Log.d("Recorder", "输出文件: ${outputFile.absolutePath}")
             recorder = AudioRecordThread(outputFile, onError)
             android.util.Log.d("Recorder", "启动录音线程...")
             recorder?.start()
@@ -38,7 +38,7 @@ class Recorder {
 
     suspend fun stopRecording() = withContext(scope.coroutineContext) {
         try {
-            android.util.Log.d("Recorder", "🛑 Recorder.stopRecording() 被调用")
+            android.util.Log.d("Recorder", "Recorder.stopRecording() 被调用")
             recorder?.stopRecording()
             @Suppress("BlockingMethodInNonBlockingContext")
             recorder?.join()

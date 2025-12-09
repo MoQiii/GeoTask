@@ -127,7 +127,7 @@ class AMapProvider : MapProvider {
                     // 使用高德地图定位服务获取当前位置（包含地址）
                     val aMapLocationService = com.syj.geotask.data.service.AMapLocationService(context)
                     
-                    Timber.d("📍 开始获取当前位置（包含地址）...")
+                    Timber.d("开始获取当前位置（包含地址）...")
                     
                     // 直接调用挂起函数，让 LaunchedEffect 处理协程
                     val (location, address) = aMapLocationService.getCurrentLocationWithAddress()

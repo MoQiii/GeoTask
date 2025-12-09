@@ -114,7 +114,7 @@ class NotificationService @Inject constructor(private val context: Context) {
                 }
                 val distance = currentLocation.distanceTo(targetLocation)
                 
-                Timber.d("📍 位置验证详情:")
+                Timber.d("位置验证详情:")
                 Timber.d("  taskId=$taskId")
                 Timber.d("  当前位置: lat=${currentLocation.latitude}, lng=${currentLocation.longitude}")
                 Timber.d("  目标位置: lat=$taskLatitude, lng=$taskLongitude")

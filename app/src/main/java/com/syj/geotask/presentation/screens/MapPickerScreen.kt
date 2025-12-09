@@ -236,7 +236,7 @@ fun MapPickerScreen(
             selectedLng = lng
             isLoadingLocation = false
             hasValidLocation = true
-            Timber.d("📍 更新地图中心位置: lat=$lat, lng=$lng")
+            Timber.d("更新地图中心位置: lat=$lat, lng=$lng")
         },
         onLocationError = {
             Timber.w("无法获取当前位置")

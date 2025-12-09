@@ -88,7 +88,7 @@ fun TaskListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    Timber.d("🔘 新增任务按钮点击触发")
+                    Timber.d("新增任务按钮点击触发")
                     onNavigateToAddTask()
                 },
                 containerColor = MaterialTheme.colorScheme.primary
@@ -249,7 +249,7 @@ fun TaskListScreen(
                     if (isVoiceRecording || isVoiceProcessing) {
                         scope.launch {
                             if (isVoiceRecording) {
-                                Timber.d("🛑 停止语音录音")
+                                Timber.d("停止语音录音")
                                 viewModel.stopVoiceRecordingAndProcess(
                                     onSuccess = { recognizedText ->
                                         Timber.d("语音任务创建成功: $recognizedText")
@@ -262,9 +262,9 @@ fun TaskListScreen(
                         }
                     } else {
                         scope.launch {
-                            Timber.d("🎤 开始语音录音")
+                            Timber.d("开始语音录音")
                             val recordingStarted = viewModel.startVoiceRecording()
-                            Timber.d("🎤 语音录音启动结果: $recordingStarted")
+                            Timber.d("语音录音启动结果: $recordingStarted")
                             if (!recordingStarted) {
                                 Timber.e("录音启动失败")
                             }

@@ -110,12 +110,12 @@ class SpeechToTextManager(private val context: Context) {
         outputFile: File,
         onError: (Exception) -> Unit = {}
     ): Boolean {
-        Timber.d("🎙️ SpeechToTextManager.startRecording() 被调用")
-        Timber.d("📁 输出文件: ${outputFile.absolutePath}")
+        Timber.d("SpeechToTextManager.startRecording() 被调用")
+        Timber.d("输出文件: ${outputFile.absolutePath}")
         return try {
-            Timber.d("🎤 调用 recorder.startRecording()...")
+            Timber.d("调用 recorder.startRecording()...")
             val success = recorder.startRecording(outputFile, onError)
-            Timber.d("🎤 recorder.startRecording() 返回: $success")
+            Timber.d("recorder.startRecording() 返回: $success")
             if (success) {
                 Timber.d("开始录音成功: ${outputFile.absolutePath}")
             } else {

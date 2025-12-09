@@ -89,20 +89,20 @@ class AMapLocationService(private val context: Context) {
                 return null
             }
 
-            Timber.d("📍 开始高德定位，定位模式: ${locationOption?.locationMode}")
-            Timber.d("📍 定位参数 - 单次定位: ${locationOption?.isOnceLocation}, 需要地址: ${locationOption?.isNeedAddress}")
+            Timber.d("开始高德定位，定位模式: ${locationOption?.locationMode}")
+            Timber.d("定位参数 - 单次定位: ${locationOption?.isOnceLocation}, 需要地址: ${locationOption?.isNeedAddress}")
 
             // 使用协程等待定位结果
             suspendCancellableCoroutine { continuation ->
                 val locationListener = object : AMapLocationListener {
                     override fun onLocationChanged(amapLocation: AMapLocation?) {
                         try {
-                            Timber.d("📍 高德定位回调触发")
+                            Timber.d("高德定位回调触发")
                             
                             if (amapLocation != null) {
-                                Timber.d("📍 定位结果 - errorCode: ${amapLocation.errorCode}, errorInfo: ${amapLocation.errorInfo}")
-                                Timber.d("📍 定位详情 - lat: ${amapLocation.latitude}, lng: ${amapLocation.longitude}, accuracy: ${amapLocation.accuracy}")
-                                Timber.d("📍 定位类型: ${amapLocation.locationType}, 提供者: ${amapLocation.provider}")
+                                Timber.d("定位结果 - errorCode: ${amapLocation.errorCode}, errorInfo: ${amapLocation.errorInfo}")
+                                Timber.d("定位详情 - lat: ${amapLocation.latitude}, lng: ${amapLocation.longitude}, accuracy: ${amapLocation.accuracy}")
+                                Timber.d("定位类型: ${amapLocation.locationType}, 提供者: ${amapLocation.provider}")
                                 
                                 if (amapLocation.errorCode == 0) {
                                     // 定位成功
@@ -138,7 +138,7 @@ class AMapLocationService(private val context: Context) {
                             // 停止定位
                             try {
                                 locationClient?.stopLocation()
-                                Timber.d("📍 定位已停止")
+                                Timber.d("定位已停止")
                             } catch (e: Exception) {
                                 Timber.e(e, "停止定位时发生异常")
                             }
@@ -151,14 +151,14 @@ class AMapLocationService(private val context: Context) {
                     locationClient?.setLocationListener(locationListener)
                     
                     // 启动定位
-                    Timber.d("📍 启动高德定位...")
+                    Timber.d("启动高德定位...")
                     val startResult = locationClient?.startLocation()
-                    Timber.d("📍 启动定位结果: $startResult")
+                    Timber.d("启动定位结果: $startResult")
                     
                     // 设置超时处理
                     continuation.invokeOnCancellation {
                         try {
-                            Timber.d("📍 定位被取消，停止定位服务")
+                            Timber.d("定位被取消，停止定位服务")
                             locationClient?.stopLocation()
                             locationClient?.unRegisterLocationListener(locationListener)
                         } catch (e: Exception) {
@@ -232,19 +232,19 @@ class AMapLocationService(private val context: Context) {
                 return Pair(null, null)
             }
 
-            Timber.d("📍 开始高德定位（包含地址信息）")
+            Timber.d("开始高德定位（包含地址信息）")
 
             // 使用协程等待定位结果
             suspendCancellableCoroutine { continuation ->
                 val locationListener = object : AMapLocationListener {
                     override fun onLocationChanged(amapLocation: AMapLocation?) {
                         try {
-                            Timber.d("📍 高德定位回调触发")
+                            Timber.d("高德定位回调触发")
                             
                             if (amapLocation != null) {
-                                Timber.d("📍 定位结果 - errorCode: ${amapLocation.errorCode}, errorInfo: ${amapLocation.errorInfo}")
-                                Timber.d("📍 定位详情 - lat: ${amapLocation.latitude}, lng: ${amapLocation.longitude}, accuracy: ${amapLocation.accuracy}")
-                                Timber.d("📍 定位类型: ${amapLocation.locationType}, 提供者: ${amapLocation.provider}")
+                                Timber.d("定位结果 - errorCode: ${amapLocation.errorCode}, errorInfo: ${amapLocation.errorInfo}")
+                                Timber.d("定位详情 - lat: ${amapLocation.latitude}, lng: ${amapLocation.longitude}, accuracy: ${amapLocation.accuracy}")
+                                Timber.d("定位类型: ${amapLocation.locationType}, 提供者: ${amapLocation.provider}")
                                 
                                 if (amapLocation.errorCode == 0) {
                                     // 定位成功
@@ -283,7 +283,7 @@ class AMapLocationService(private val context: Context) {
                             // 停止定位
                             try {
                                 locationClient?.stopLocation()
-                                Timber.d("📍 定位已停止")
+                                Timber.d("定位已停止")
                             } catch (e: Exception) {
                                 Timber.e(e, "停止定位时发生异常")
                             }
@@ -296,14 +296,14 @@ class AMapLocationService(private val context: Context) {
                     locationClient?.setLocationListener(locationListener)
                     
                     // 启动定位
-                    Timber.d("📍 启动高德定位...")
+                    Timber.d("启动高德定位...")
                     val startResult = locationClient?.startLocation()
-                    Timber.d("📍 启动定位结果: $startResult")
+                    Timber.d("启动定位结果: $startResult")
                     
                     // 设置超时处理
                     continuation.invokeOnCancellation {
                         try {
-                            Timber.d("📍 定位被取消，停止定位服务")
+                            Timber.d("定位被取消，停止定位服务")
                             locationClient?.stopLocation()
                             locationClient?.unRegisterLocationListener(locationListener)
                         } catch (e: Exception) {

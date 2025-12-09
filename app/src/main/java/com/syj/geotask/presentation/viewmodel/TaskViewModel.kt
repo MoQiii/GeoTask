@@ -160,10 +160,10 @@ class TaskViewModel @Inject constructor(
      * 开始语音录音
      */
     suspend fun startVoiceRecording(): Boolean {
-        Timber.d("🎤 TaskViewModel.startVoiceRecording() 被调用")
+        Timber.d("TaskViewModel.startVoiceRecording() 被调用")
         return try {
             voiceTaskManager.clearError()
-            Timber.d("🎤 清除错误状态完成，开始调用 voiceTaskManager.startRecording()")
+            Timber.d("清除错误状态完成，开始调用 voiceTaskManager.startRecording()")
             val success = voiceTaskManager.startRecording()
             if (success) {
                 Timber.d("开始语音录音成功")
@@ -209,7 +209,7 @@ class TaskViewModel @Inject constructor(
     suspend fun cancelVoiceRecording() {
         try {
             voiceTaskManager.cancelRecording()
-            Timber.d("🛑 已取消语音录音")
+            Timber.d("已取消语音录音")
         } catch (e: Exception) {
             Timber.e(e, "取消语音录音时发生错误")
         }
@@ -409,7 +409,7 @@ class TaskViewModel @Inject constructor(
     }
 
     fun updateSelectedLocation(location: String?, latitude: Double?, longitude: Double?) {
-        Timber.d("📍 更新选中位置:")
+        Timber.d("更新选中位置:")
         Timber.d("  地址: $location")
         Timber.d("  纬度: $latitude")
         Timber.d("  经度: $longitude")

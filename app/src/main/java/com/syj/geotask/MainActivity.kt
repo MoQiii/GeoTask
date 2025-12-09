@@ -23,7 +23,7 @@ import com.syj.geotask.presentation.screens.MapPickerScreen
 import com.syj.geotask.presentation.screens.SettingsScreen
 import com.syj.geotask.presentation.screens.TaskDetailScreen
 import com.syj.geotask.presentation.screens.TaskListScreen
-import com.syj.geotask.speech.SpeechTestScreen
+import com.syj.geotask.presentation.screens.SpeechTestScreen
 import com.syj.geotask.presentation.theme.GeoTaskTheme
 import com.syj.geotask.presentation.theme.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,14 +33,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.lifecycleScope
 import javax.inject.Inject
 import com.syj.geotask.data.service.NotificationService
-import com.whispercppdemo.whisper.WhisperTest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.openapitools.client.apis.TaskControllerApi
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -88,10 +82,8 @@ class MainActivity : ComponentActivity() {
         // 初始化地图管理器
         MapManager.initialize(this)
         
-        // 测试LogTest工具类
-//        LogTest.testLogging(this)
-        
         setContent {
+            //remember 重组时记住值
             var darkMode by remember { mutableStateOf(false) }
             
             // 监听主题变化

@@ -7,16 +7,12 @@ import com.syj.geotask.data.service.IGeofenceManager
 import com.syj.geotask.data.service.TaskReminderManager
 import com.syj.geotask.data.work.TaskReminderWorker
 import com.syj.geotask.domain.usecase.GetTasksUseCase
-import com.syj.geotask.presentation.map.MapManager
-import com.syj.geotask.utils.AssetUtils
 import com.syj.geotask.utils.FileLoggingTree
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.openapitools.client.apis.TaskControllerApi
-import org.openapitools.client.infrastructure.ApiClient
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
